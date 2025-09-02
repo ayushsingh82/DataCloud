@@ -28,6 +28,11 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-100/30 to-purple-100/30 rounded-full blur-3xl"></div>
         <div className="max-w-7xl mx-auto text-center relative z-10">
+          {/* Floating elements */}
+          <div className="absolute top-10 left-20 w-4 h-4 bg-[#0090FF] rounded-full animate-bounce delay-300"></div>
+          <div className="absolute top-32 right-32 w-6 h-6 bg-[#8B5CF6] rounded-full animate-bounce delay-700"></div>
+          <div className="absolute bottom-20 left-1/4 w-3 h-3 bg-[#EC4899] rounded-full animate-bounce delay-1000"></div>
+          
           <h1 className="text-5xl md:text-7xl font-black text-black mb-6 tracking-tight">
             <span className="bg-gradient-to-r from-[#0090FF] via-purple-600 to-pink-600 bg-clip-text text-transparent animate-pulse">
               DECENTRALIZED
@@ -45,11 +50,13 @@ export default function Home() {
             Privacy-preserving queries on encrypted datasets. Sell insights, not raw data.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <button className="bg-gradient-to-r from-[#0090FF] to-[#8B5CF6] text-white px-10 py-4 rounded-full text-lg font-bold hover:shadow-2xl hover:scale-110 transition-all duration-300 transform">
-              🚀 Start Selling Data
+            <button className="bg-gradient-to-r from-[#0090FF] to-[#8B5CF6] text-white px-10 py-4 rounded-full text-lg font-bold hover:shadow-2xl hover:scale-110 transition-all duration-300 transform relative overflow-hidden group">
+              <span className="relative z-10">🚀 Start Selling Data</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#8B5CF6] to-[#EC4899] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
-            <button className="border-2 border-[#0090FF] text-[#0090FF] px-10 py-4 rounded-full text-lg font-bold hover:bg-[#0090FF] hover:text-white hover:scale-110 transition-all duration-300 transform">
-              🔍 Browse Datasets
+            <button className="border-2 border-[#0090FF] text-[#0090FF] px-10 py-4 rounded-full text-lg font-bold hover:bg-[#0090FF] hover:text-white hover:scale-110 transition-all duration-300 transform relative overflow-hidden group">
+              <span className="relative z-10">🔍 Browse Datasets</span>
+              <div className="absolute inset-0 bg-[#0090FF] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
           </div>
         </div>
@@ -71,8 +78,9 @@ export default function Home() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gradient-to-br from-white to-blue-50 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 border border-blue-100/50">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#0090FF] to-[#8B5CF6] rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+            <div className="bg-gradient-to-br from-white to-blue-50 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 border border-blue-100/50 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#0090FF]/20 to-[#8B5CF6]/20 rounded-full blur-xl"></div>
+              <div className="w-16 h-16 bg-gradient-to-br from-[#0090FF] to-[#8B5CF6] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:rotate-12 transition-transform duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
@@ -87,8 +95,9 @@ export default function Home() {
               <p className="text-gray-600 text-lg">Your raw data never leaves your control. Only query results are shared.</p>
             </div>
 
-            <div className="bg-gradient-to-br from-white to-purple-50 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 border border-purple-100/50">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+            <div className="bg-gradient-to-br from-white to-purple-50 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 border border-purple-100/50 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#8B5CF6]/20 to-[#EC4899]/20 rounded-full blur-xl"></div>
+              <div className="w-16 h-16 bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:rotate-12 transition-transform duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -103,8 +112,9 @@ export default function Home() {
               <p className="text-gray-600 text-lg">PDP proofs ensure your data exists and is stored as claimed.</p>
             </div>
 
-            <div className="bg-gradient-to-br from-white to-pink-50 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 border border-pink-100/50">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#EC4899] to-[#F59E0B] rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+            <div className="bg-gradient-to-br from-white to-pink-50 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-500 border border-pink-100/50 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#EC4899]/20 to-[#F59E0B]/20 rounded-full blur-xl"></div>
+              <div className="w-16 h-16 bg-gradient-to-br from-[#EC4899] to-[#F59E0B] rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:rotate-12 transition-transform duration-300">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
