@@ -31,18 +31,12 @@ export default function Navbar() {
             <Link href="/buyers" className="text-white hover:text-blue-400 transition-colors">
               For Buyers
             </Link>
-            <Link href="/docs" className="text-white hover:text-blue-400 transition-colors">
-              Docs
-            </Link>
           </nav>
 
           {/* Connect Wallet Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-300 hover:text-white transition-colors">
-              Connect Wallet
-            </button>
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors">
-              Launch App
+              Connect Wallet
             </button>
           </div>
 
@@ -73,15 +67,9 @@ export default function Navbar() {
               <Link href="/buyers" className="text-white hover:text-blue-400 transition-colors">
                 For Buyers
               </Link>
-              <Link href="/docs" className="text-white hover:text-blue-400 transition-colors">
-                Docs
-              </Link>
-              <div className="flex flex-col space-y-2 pt-4 border-t border-gray-800">
-                <button className="text-gray-300 hover:text-white transition-colors text-left">
+              <div className="pt-4 border-t border-gray-800">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors text-left w-full">
                   Connect Wallet
-                </button>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors text-left">
-                  Launch App
                 </button>
               </div>
             </div>

@@ -299,27 +299,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black border-t border-gray-800 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <h3 className="text-xl font-bold text-blue-500">
-                DataCloud
-              </h3>
-            </div>
-            <div className="flex space-x-6 text-sm">
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Features</a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Docs</a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">Community</a>
-              <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors">GitHub</a>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-6 pt-6 text-center">
-            <p className="text-gray-500 text-sm">&copy; 2024 DataCloud. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
