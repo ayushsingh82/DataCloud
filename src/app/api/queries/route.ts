@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { QueryOrder, QueryType, OrderStatus, QueryAttestation } from '@/lib/contracts';
+import { QueryOrder, QueryType, OrderStatus } from '@/lib/contracts';
 
 // Mock data store for query orders
 const mockOrders: QueryOrder[] = [

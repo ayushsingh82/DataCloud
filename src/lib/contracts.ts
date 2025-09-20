@@ -24,7 +24,7 @@ export interface QueryOrder {
   datasetId: string;
   buyer: string; // Wallet address
   queryType: QueryType;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   price: string; // in FIL
   status: OrderStatus;
   createdAt: number;
@@ -159,10 +159,10 @@ export const CONTRACT_ADDRESSES = {
 
 // Utility functions for contract interactions
 export class DataCloudContracts {
-  private provider: any;
-  private signer: any;
+  private provider: unknown;
+  private signer: unknown;
 
-  constructor(provider: any, signer?: any) {
+  constructor(provider: unknown, signer?: unknown) {
     this.provider = provider;
     this.signer = signer;
   }
@@ -174,7 +174,7 @@ export class DataCloudContracts {
     return 'mock-dataset-id';
   }
 
-  async getDataset(datasetId: string): Promise<Dataset | null> {
+  async getDataset(_datasetId: string): Promise<Dataset | null> {
     // Mock implementation
     return null;
   }
@@ -185,12 +185,12 @@ export class DataCloudContracts {
   }
 
   // Query Market methods
-  async createQueryOrder(datasetId: string, queryType: QueryType, parameters: Record<string, any>, maxPrice: string): Promise<string> {
+  async createQueryOrder(datasetId: string, queryType: QueryType, parameters: Record<string, unknown>, maxPrice: string): Promise<string> {
     console.log('Creating query order:', { datasetId, queryType, parameters, maxPrice });
     return 'mock-order-id';
   }
 
-  async getQueryOrder(orderId: string): Promise<QueryOrder | null> {
+  async getQueryOrder(_orderId: string): Promise<QueryOrder | null> {
     // Mock implementation
     return null;
   }
@@ -201,8 +201,8 @@ export class DataCloudContracts {
   }
 
   // Proof Manager methods
-  async submitProof(datasetId: string, proof: string, challenge: string): Promise<boolean> {
-    console.log('Submitting proof:', { datasetId, proof, challenge });
+  async submitProof(_datasetId: string, proof: string, challenge: string): Promise<boolean> {
+    console.log('Submitting proof:', { _datasetId, proof, challenge });
     return true;
   }
 
@@ -253,7 +253,7 @@ export function formatFIL(amount: string): string {
   return `${num.toFixed(4)} FIL`;
 }
 
-export function validateQueryParameters(queryType: QueryType, parameters: Record<string, any>): boolean {
+export function validateQueryParameters(queryType: QueryType, parameters: Record<string, unknown>): boolean {
   switch (queryType) {
     case QueryType.AGGREGATION:
       return !!(parameters.function && parameters.column);
