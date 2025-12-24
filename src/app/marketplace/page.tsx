@@ -112,23 +112,23 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: '#000000' }}>
       <Navbar />
       
       {/* Hero Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6">
-            Data <span className="text-blue-500">Marketplace</span>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
+            Data <span className="text-[#20D55A]">Marketplace</span>
           </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-white/40 mb-8 max-w-3xl mx-auto">
             Discover privacy-preserving datasets and run secure queries without accessing raw data
           </p>
         </div>
       </section>
 
       {/* Search and Filters */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-white/10" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-center">
             {/* Search */}
@@ -139,9 +139,10 @@ export default function MarketplacePage() {
                   placeholder="Search datasets, categories, or tags..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-black/50 border border-gray-700 rounded-lg px-4 py-3 pl-10 text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                  className="w-full border border-white/20 rounded-lg px-4 py-3 pl-10 text-white placeholder-white/40 focus:border-[#20D55A] focus:outline-none"
+                  style={{ backgroundColor: '#000000' }}
                 />
-                <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="absolute left-3 top-3.5 w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -153,7 +154,8 @@ export default function MarketplacePage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-black/50 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-blue-500 focus:outline-none"
+                className="border border-white/20 rounded-lg px-3 py-2 text-white focus:border-[#20D55A] focus:outline-none"
+                style={{ backgroundColor: '#000000' }}
               >
                 <option value="recent">Most Recent</option>
                 <option value="price-low">Price: Low to High</option>
@@ -170,11 +172,12 @@ export default function MarketplacePage() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                      selectedCategory === category
+                        ? 'bg-[#20D55A] text-black border-white/20'
+                        : 'border-white/20 text-white/40 hover:text-white'
+                    }`}
+                    style={{ backgroundColor: selectedCategory === category ? '#20D55A' : '#000000' }}
               >
                 {category}
               </button>
@@ -184,13 +187,13 @@ export default function MarketplacePage() {
       </section>
 
       {/* Results */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8">
+      <section className="py-8 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-bold text-white">
               {filteredDatasets.length} Dataset{filteredDatasets.length !== 1 ? 's' : ''} Found
             </h2>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-white/40">
               Showing {sortedDatasets.length} of {mockDatasets.length} datasets
             </div>
           </div>
@@ -206,8 +209,8 @@ export default function MarketplacePage() {
           {sortedDatasets.length === 0 && (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2">No datasets found</h3>
-              <p className="text-gray-400 mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-white">No datasets found</h3>
+              <p className="text-white/40 mb-6">
                 Try adjusting your search terms or category filters
               </p>
               <button
@@ -215,7 +218,7 @@ export default function MarketplacePage() {
                   setSearchTerm('');
                   setSelectedCategory('All');
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                className="bg-[#20D55A] hover:bg-green-400 text-black px-6 py-2 rounded-lg transition-colors font-semibold"
               >
                 Clear Filters
               </button>

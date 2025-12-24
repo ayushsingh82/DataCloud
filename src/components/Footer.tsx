@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <h3 className="text-xl font-bold text-blue-500 mb-4">DataCloud</h3>
+            <h3 className="text-xl font-bold text-[#20D55A] mb-4">DataCloud</h3>
             <p className="text-gray-400 text-sm">
               Privacy-preserving decentralized data marketplace powered by Filecoin and Synapse SDK.
             </p>

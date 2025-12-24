@@ -3,34 +3,34 @@ import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+    <div className="min-h-screen" style={{ backgroundColor: '#000000' }}>
       <Navbar />
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Text Content */}
             <div className="text-left">
-              <div className="inline-flex items-center px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-sm font-medium mb-6">
+              <div className="inline-flex items-center px-4 py-2 border border-white/20 rounded-full text-[#20D55A] text-sm font-medium mb-6" style={{ backgroundColor: '#000000' }}>
                 🔒 Powered by Filecoin Network
               </div>
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-6">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 text-white">
                 Privacy-Preserving{' '}
-                <span className="text-blue-500">Data Marketplace</span>
+                <span className="text-[#20D55A]">Data Marketplace</span>
                 <br />
                 Powered by Filecoin
               </h1>
-              <p className="text-xl sm:text-2xl text-gray-300 mb-8">
+              <p className="text-xl sm:text-2xl text-white/40 mb-8">
                 Buy, sell, and deploy privacy-preserving queries on encrypted datasets. 
                 Leverage Filecoin storage and Synapse SDK for secure data analytics.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors duration-200 flex items-center gap-2">
+                <button className="bg-[#20D55A] hover:bg-green-400 text-black px-8 py-4 rounded-lg font-semibold text-lg transition-colors duration-200 flex items-center gap-2">
                   <span>🚀</span>
                   Start Selling Data
                 </button>
-                <button className="border border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors duration-200">
+                <button className="border border-white/20 text-white hover:opacity-80 px-8 py-4 rounded-lg font-semibold text-lg transition-opacity">
                   Browse Datasets
                 </button>
               </div>
@@ -42,7 +42,7 @@ export default function Home() {
                 {/* Data Network Nodes */}
                 <div className="absolute inset-0">
                   {/* Central Data Hub */}
-                  <div className="absolute inset-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/50">
+                  <div className="absolute inset-24 bg-gradient-to-br from-[#20D55A] to-green-600 rounded-full flex items-center justify-center shadow-2xl shadow-[#20D55A]/50">
                     <div className="text-white font-bold text-xl text-center">
                       <div>💾</div>
                       <div>Data Hub</div>
@@ -51,16 +51,16 @@ export default function Home() {
                   </div>
                   
                   {/* Floating Data Nodes */}
-                  <div className="absolute top-8 left-8 w-16 h-16 bg-green-500/80 rounded-full flex items-center justify-center animate-bounce">
+                  <div className="absolute top-8 left-8 w-16 h-16 bg-[#20D55A]/80 rounded-full flex items-center justify-center animate-bounce">
                     <span className="text-white text-lg">🔐</span>
                   </div>
-                  <div className="absolute top-12 right-12 w-12 h-12 bg-purple-500/80 rounded-full flex items-center justify-center animate-bounce" style={{ animationDelay: '0.5s' }}>
+                  <div className="absolute top-12 right-12 w-12 h-12 bg-[#20D55A]/80 rounded-full flex items-center justify-center animate-bounce" style={{ animationDelay: '0.5s' }}>
                     <span className="text-white text-sm">📊</span>
                   </div>
-                  <div className="absolute bottom-8 left-12 w-14 h-14 bg-orange-500/80 rounded-full flex items-center justify-center animate-bounce" style={{ animationDelay: '1s' }}>
+                  <div className="absolute bottom-8 left-12 w-14 h-14 bg-[#20D55A]/80 rounded-full flex items-center justify-center animate-bounce" style={{ animationDelay: '1s' }}>
                     <span className="text-white text-lg">🔍</span>
                   </div>
-                  <div className="absolute bottom-12 right-8 w-10 h-10 bg-red-500/80 rounded-full flex items-center justify-center animate-bounce" style={{ animationDelay: '1.5s' }}>
+                  <div className="absolute bottom-12 right-8 w-10 h-10 bg-[#20D55A]/80 rounded-full flex items-center justify-center animate-bounce" style={{ animationDelay: '1.5s' }}>
                     <span className="text-white text-sm">⚡</span>
                   </div>
                   
@@ -68,8 +68,8 @@ export default function Home() {
                   <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 320">
                     <defs>
                       <linearGradient id="dataGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.6"/>
-                        <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.3"/>
+                        <stop offset="0%" stopColor="#20D55A" stopOpacity="0.6"/>
+                        <stop offset="100%" stopColor="#20D55A" stopOpacity="0.3"/>
                       </linearGradient>
                     </defs>
                     <line x1="80" y1="80" x2="240" y2="240" stroke="url(#dataGradient)" strokeWidth="2" className="animate-pulse"/>
@@ -85,58 +85,58 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
+      <section id="features" className="py-16 px-4 sm:px-6 lg:px-8 border-t border-white/10" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Why <span className="text-blue-500">DataCloud</span>?
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
+              Why <span className="text-[#20D55A]">DataCloud</span>?
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-white/40 max-w-3xl mx-auto">
               Privacy-first data monetization with cryptographic verification
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Privacy-Preserving */}
-            <div className="bg-black/50 border border-gray-800 rounded-xl p-8 hover:border-blue-500/50 transition-all duration-300 hover:transform hover:scale-105">
-              <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6">
+            <div className="border border-white/20 rounded-xl p-8 hover:opacity-80 transition-opacity" style={{ backgroundColor: '#000000' }}>
+              <div className="w-12 h-12 bg-[#20D55A] rounded-lg flex items-center justify-center mb-6">
                 <span className="text-2xl">🔐</span>
               </div>
-              <h3 className="text-xl font-bold mb-4">Privacy-Preserving</h3>
-              <p className="text-gray-300 mb-4">
+              <h3 className="text-xl font-bold mb-4 text-white">Privacy-Preserving</h3>
+              <p className="text-white/40 mb-4">
                 Your raw data never leaves your control. Only query results are shared with cryptographic guarantees.
               </p>
-              <div className="flex items-center text-blue-400 text-sm">
+              <div className="flex items-center text-[#20D55A] text-sm">
                 <span>Learn More</span>
                 <span className="ml-2">→</span>
               </div>
             </div>
 
             {/* Cryptographically Verified */}
-            <div className="bg-black/50 border border-gray-800 rounded-xl p-8 hover:border-green-500/50 transition-all duration-300 hover:transform hover:scale-105">
-              <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-6">
+            <div className="border border-white/20 rounded-xl p-8 hover:opacity-80 transition-opacity" style={{ backgroundColor: '#000000' }}>
+              <div className="w-12 h-12 bg-[#20D55A] rounded-lg flex items-center justify-center mb-6">
                 <span className="text-2xl">✓</span>
               </div>
-              <h3 className="text-xl font-bold mb-4">Cryptographically Verified</h3>
-              <p className="text-gray-300 mb-4">
+              <h3 className="text-xl font-bold mb-4 text-white">Cryptographically Verified</h3>
+              <p className="text-white/40 mb-4">
                 PDP proofs ensure your data exists and is stored as claimed with mathematical certainty.
               </p>
-              <div className="flex items-center text-green-400 text-sm">
+              <div className="flex items-center text-[#20D55A] text-sm">
                 <span>Learn More</span>
                 <span className="ml-2">→</span>
               </div>
             </div>
 
             {/* Decentralized */}
-            <div className="bg-black/50 border border-gray-800 rounded-xl p-8 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-105">
-              <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-6">
+            <div className="border border-white/20 rounded-xl p-8 hover:opacity-80 transition-opacity" style={{ backgroundColor: '#000000' }}>
+              <div className="w-12 h-12 bg-[#20D55A] rounded-lg flex items-center justify-center mb-6">
                 <span className="text-2xl">🌐</span>
               </div>
-              <h3 className="text-xl font-bold mb-4">Decentralized</h3>
-              <p className="text-gray-300 mb-4">
+              <h3 className="text-xl font-bold mb-4 text-white">Decentralized</h3>
+              <p className="text-white/40 mb-4">
                 Built on Filecoin and IPFS for truly decentralized data storage and access.
               </p>
-              <div className="flex items-center text-purple-400 text-sm">
+              <div className="flex items-center text-[#20D55A] text-sm">
                 <span>Learn More</span>
                 <span className="ml-2">→</span>
               </div>
@@ -146,69 +146,69 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 px-4 sm:px-6 lg:px-8">
+      <section id="how-it-works" className="py-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              How <span className="text-blue-500">DataCloud</span> Works
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
+              How <span className="text-[#20D55A]">DataCloud</span> Works
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-white/40 max-w-3xl mx-auto">
               Simple steps to monetize your data securely
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* For Data Sellers */}
-            <div className="bg-black/50 border border-gray-800 rounded-xl p-8">
-              <h3 className="text-2xl font-bold mb-6 text-center text-blue-400">For Data Sellers</h3>
+            <div className="border border-white/20 rounded-xl p-8" style={{ backgroundColor: '#000000' }}>
+              <h3 className="text-2xl font-bold mb-6 text-center text-[#20D55A]">For Data Sellers</h3>
               <div className="space-y-6">
                 <div className="flex items-start">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">1</div>
+                  <div className="w-8 h-8 bg-[#20D55A] text-black rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">1</div>
                   <div>
                     <h4 className="font-semibold text-white mb-2">Upload & Encrypt</h4>
-                    <p className="text-gray-300">Upload your dataset to Filecoin and IPFS with encryption</p>
+                    <p className="text-white/40">Upload your dataset to Filecoin and IPFS with encryption</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">2</div>
+                  <div className="w-8 h-8 bg-[#20D55A] text-black rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">2</div>
                   <div>
                     <h4 className="font-semibold text-white mb-2">Define Queries</h4>
-                    <p className="text-gray-300">Set up allowed computations and pricing for your data</p>
+                    <p className="text-white/40">Set up allowed computations and pricing for your data</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">3</div>
+                  <div className="w-8 h-8 bg-[#20D55A] text-black rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">3</div>
                   <div>
                     <h4 className="font-semibold text-white mb-2">Earn Revenue</h4>
-                    <p className="text-gray-300">Get paid for each query while keeping your data private</p>
+                    <p className="text-white/40">Get paid for each query while keeping your data private</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* For Data Buyers */}
-            <div className="bg-black/50 border border-gray-800 rounded-xl p-8">
-              <h3 className="text-2xl font-bold mb-6 text-center text-green-400">For Data Buyers</h3>
+            <div className="border border-white/20 rounded-xl p-8" style={{ backgroundColor: '#000000' }}>
+              <h3 className="text-2xl font-bold mb-6 text-center text-[#20D55A]">For Data Buyers</h3>
               <div className="space-y-6">
                 <div className="flex items-start">
-                  <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">1</div>
+                  <div className="w-8 h-8 bg-[#20D55A] text-black rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">1</div>
                   <div>
                     <h4 className="font-semibold text-white mb-2">Discover Datasets</h4>
-                    <p className="text-gray-300">Browse available datasets by metadata and schema</p>
+                    <p className="text-white/40">Browse available datasets by metadata and schema</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">2</div>
+                  <div className="w-8 h-8 bg-[#20D55A] text-black rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">2</div>
                   <div>
                     <h4 className="font-semibold text-white mb-2">Submit Queries</h4>
-                    <p className="text-gray-300">Configure and pay for specific analytics or ML queries</p>
+                    <p className="text-white/40">Configure and pay for specific analytics or ML queries</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">3</div>
+                  <div className="w-8 h-8 bg-[#20D55A] text-black rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">3</div>
                   <div>
                     <h4 className="font-semibold text-white mb-2">Get Results</h4>
-                    <p className="text-gray-300">Receive verified results without accessing raw data</p>
+                    <p className="text-white/40">Receive verified results without accessing raw data</p>
                   </div>
                 </div>
               </div>
@@ -218,81 +218,81 @@ export default function Home() {
       </section>
 
       {/* Technology Stack Section */}
-      <section id="technology" className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
+      <section id="technology" className="py-16 px-4 sm:px-6 lg:px-8 border-t border-white/10" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Powered by <span className="text-blue-500">Filecoin Technology</span>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
+              Powered by <span className="text-[#20D55A]">Filecoin Technology</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-white/40 max-w-3xl mx-auto">
               Advanced storage, privacy compute, and blockchain infrastructure for secure data operations
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#20D55A] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">💾</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Filecoin Storage</h3>
-              <p className="text-gray-300">Decentralized storage with PDP proofs for data integrity verification</p>
+              <h3 className="text-lg font-semibold mb-2 text-white">Filecoin Storage</h3>
+              <p className="text-white/40">Decentralized storage with PDP proofs for data integrity verification</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#20D55A] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🔐</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Synapse SDK</h3>
-              <p className="text-gray-300">Privacy-preserving compute with encrypted query execution</p>
+              <h3 className="text-lg font-semibold mb-2 text-white">Synapse SDK</h3>
+              <p className="text-white/40">Privacy-preserving compute with encrypted query execution</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#20D55A] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🌐</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2">IPFS Network</h3>
-              <p className="text-gray-300">Distributed content addressing for global data discovery</p>
+              <h3 className="text-lg font-semibold mb-2 text-white">IPFS Network</h3>
+              <p className="text-white/40">Distributed content addressing for global data discovery</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section id="stats" className="py-16 px-4 sm:px-6 lg:px-8">
+      <section id="stats" className="py-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-500 mb-2">500+</div>
-              <p className="text-gray-300">Active Users</p>
+              <div className="text-4xl font-bold text-[#20D55A] mb-2">500+</div>
+              <p className="text-white/40">Active Users</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-green-500 mb-2">1,200+</div>
-              <p className="text-gray-300">Datasets Available</p>
+              <div className="text-4xl font-bold text-[#20D55A] mb-2">1,200+</div>
+              <p className="text-white/40">Datasets Available</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-500 mb-2">50+</div>
-              <p className="text-gray-300">Verified Providers</p>
+              <div className="text-4xl font-bold text-[#20D55A] mb-2">50+</div>
+              <p className="text-white/40">Verified Providers</p>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-orange-500 mb-2">$2.5M+</div>
-              <p className="text-gray-300">FIL Tokens Traded</p>
+              <div className="text-4xl font-bold text-[#20D55A] mb-2">$2.5M+</div>
+              <p className="text-white/40">FIL Tokens Traded</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section id="get-started" className="py-16 px-4 sm:px-6 lg:px-8">
+      <section id="get-started" className="py-16 px-4 sm:px-6 lg:px-8 border-t border-white/10" style={{ backgroundColor: '#000000' }}>
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-            Ready to Start <span className="text-blue-500">Data Trading</span>?
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-white">
+            Ready to Start <span className="text-[#20D55A]">Data Trading</span>?
           </h2>
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-xl text-white/40 mb-8">
             Join the privacy-preserving data marketplace powered by Filecoin
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors duration-200">
+            <button className="bg-[#20D55A] hover:bg-green-400 text-black px-8 py-4 rounded-lg font-semibold text-lg transition-colors duration-200">
               Start Selling Data
             </button>
-            <button className="border border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors duration-200">
+            <button className="border border-white/20 text-white hover:opacity-80 px-8 py-4 rounded-lg font-semibold text-lg transition-opacity">
               Browse Marketplace
             </button>
           </div>
