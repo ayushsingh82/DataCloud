@@ -39,37 +39,36 @@ export default function QueryCard({ query }: QueryCardProps) {
   };
 
   return (
-    <div className="border border-white/20 rounded-xl p-6 hover:opacity-80 transition-opacity" style={{ backgroundColor: '#000000' }}>
+    <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow bg-white">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-[#20D55A] rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-[#0090FF] rounded-lg flex items-center justify-center">
             <span className="text-lg">{getTypeIcon(query.type)}</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{query.name}</h3>
-            <span className="text-sm text-white/40 capitalize">{query.type}</span>
+            <h3 className="text-lg font-semibold text-black">{query.name}</h3>
+            <span className="text-sm text-gray-600 capitalize">{query.type}</span>
           </div>
         </div>
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border border-white/20 bg-[#20D55A] text-black">
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-[#0090FF] text-white">
           {query.complexity} complexity
         </span>
       </div>
 
       {/* Description */}
-      <p className="text-white/40 text-sm mb-4">
+      <p className="text-gray-600 text-sm mb-4">
         {query.description}
       </p>
 
       {/* Supported Data Types */}
       <div className="mb-4">
-        <span className="text-xs text-white/40 block mb-2">Supported Data Types:</span>
+        <span className="text-xs text-gray-600 block mb-2">Supported Data Types:</span>
         <div className="flex flex-wrap gap-1">
           {query.supportedDataTypes.map((type, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border border-white/20 text-white/40"
-              style={{ backgroundColor: '#000000' }}
+              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border border-gray-200 text-gray-600 bg-white"
             >
               {type}
             </span>
@@ -80,21 +79,21 @@ export default function QueryCard({ query }: QueryCardProps) {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
         <div>
-          <span className="text-white/40">Execution:</span>
-          <span className="text-white ml-2">{query.executionTime}</span>
+          <span className="text-gray-600">Execution:</span>
+          <span className="text-black ml-2">{query.executionTime}</span>
         </div>
         <div>
-          <span className="text-white/40">Price:</span>
-          <span className="text-[#20D55A] ml-2 font-semibold">{query.price}</span>
+          <span className="text-gray-600">Price:</span>
+          <span className="text-[#0090FF] ml-2 font-semibold">{query.price}</span>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex space-x-2">
-        <button className="flex-1 bg-[#20D55A] hover:bg-green-400 text-black px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button className="flex-1 bg-[#0090FF] hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Run Query
         </button>
-        <button className="px-4 py-2 border border-white/20 text-white hover:opacity-80 rounded-lg text-sm font-medium transition-opacity">
+        <button className="px-4 py-2 border border-gray-300 text-black hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
           Preview
         </button>
       </div>

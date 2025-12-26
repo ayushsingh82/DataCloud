@@ -112,24 +112,54 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#000000' }}>
-      <Navbar />
+    <div className="min-h-screen w-full bg-[#fafafa] relative text-gray-900">
+      {/* Diagonal Grid with Blue */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+            repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+          `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+      <div className="relative z-10">
+        <Navbar />
       
       {/* Hero Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-            Data <span className="text-[#20D55A]">Marketplace</span>
+      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Light Sky Blue Glow */}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none" 
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at center, #93c5fd, transparent)
+            `,
+          }} 
+        />
+        <div className="relative z-10 max-w-7xl mx-auto text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-black">
+            Data <span className="text-[#0090FF]">Marketplace</span>
           </h1>
-          <p className="text-xl text-white/40 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Discover privacy-preserving datasets and run secure queries without accessing raw data
           </p>
         </div>
       </section>
 
       {/* Search and Filters */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-white/10" style={{ backgroundColor: '#000000' }}>
-        <div className="max-w-7xl mx-auto">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
+        {/* Light Sky Blue Glow */}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none" 
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at center, #93c5fd, transparent)
+            `,
+          }} 
+        />
+        <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-center">
             {/* Search */}
             <div className="flex-1 w-full lg:w-auto">
@@ -139,10 +169,9 @@ export default function MarketplacePage() {
                   placeholder="Search datasets, categories, or tags..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full border border-white/20 rounded-lg px-4 py-3 pl-10 text-white placeholder-white/40 focus:border-[#20D55A] focus:outline-none"
-                  style={{ backgroundColor: '#000000' }}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-3 pl-10 text-black placeholder-gray-400 focus:border-[#0090FF] focus:outline-none bg-white"
                 />
-                <svg className="absolute left-3 top-3.5 w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -154,8 +183,7 @@ export default function MarketplacePage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border border-white/20 rounded-lg px-3 py-2 text-white focus:border-[#20D55A] focus:outline-none"
-                style={{ backgroundColor: '#000000' }}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-black focus:border-[#0090FF] focus:outline-none bg-white"
               >
                 <option value="recent">Most Recent</option>
                 <option value="price-low">Price: Low to High</option>
@@ -174,10 +202,9 @@ export default function MarketplacePage() {
                 onClick={() => setSelectedCategory(category)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                       selectedCategory === category
-                        ? 'bg-[#20D55A] text-black border-white/20'
-                        : 'border-white/20 text-white/40 hover:text-white'
+                        ? 'bg-[#0090FF] text-white border-gray-300'
+                        : 'border-gray-300 text-gray-600 hover:text-black bg-white'
                     }`}
-                    style={{ backgroundColor: selectedCategory === category ? '#20D55A' : '#000000' }}
               >
                 {category}
               </button>
@@ -187,13 +214,22 @@ export default function MarketplacePage() {
       </section>
 
       {/* Results */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#000000' }}>
-        <div className="max-w-7xl mx-auto">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Light Sky Blue Glow */}
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none" 
+          style={{
+            backgroundImage: `
+              radial-gradient(circle at center, #93c5fd, transparent)
+            `,
+          }} 
+        />
+        <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-black">
               {filteredDatasets.length} Dataset{filteredDatasets.length !== 1 ? 's' : ''} Found
             </h2>
-            <div className="text-sm text-white/40">
+            <div className="text-sm text-gray-600">
               Showing {sortedDatasets.length} of {mockDatasets.length} datasets
             </div>
           </div>
@@ -209,8 +245,8 @@ export default function MarketplacePage() {
           {sortedDatasets.length === 0 && (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2 text-white">No datasets found</h3>
-              <p className="text-white/40 mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-black">No datasets found</h3>
+              <p className="text-gray-600 mb-6">
                 Try adjusting your search terms or category filters
               </p>
               <button
@@ -218,7 +254,7 @@ export default function MarketplacePage() {
                   setSearchTerm('');
                   setSelectedCategory('All');
                 }}
-                className="bg-[#20D55A] hover:bg-green-400 text-black px-6 py-2 rounded-lg transition-colors font-semibold"
+                className="bg-[#0090FF] hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors font-semibold"
               >
                 Clear Filters
               </button>
@@ -228,6 +264,7 @@ export default function MarketplacePage() {
       </section>
 
       <Footer />
+      </div>
     </div>
   );
 }
