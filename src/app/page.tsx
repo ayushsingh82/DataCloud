@@ -111,13 +111,15 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Privacy-Preserving */}
             <div className="border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
-              {/* Light Sky Blue Glow */}
+              {/* Diagonal Grid with Blue */}
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
                 style={{
                   backgroundImage: `
-                    radial-gradient(circle at center, #93c5fd, transparent)
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
                   `,
+                  backgroundSize: "40px 40px",
                 }} 
               />
               <div className="relative z-10">
@@ -137,13 +139,15 @@ export default function Home() {
 
             {/* Cryptographically Verified */}
             <div className="border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
-              {/* Light Sky Blue Glow */}
+              {/* Diagonal Grid with Blue */}
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
                 style={{
                   backgroundImage: `
-                    radial-gradient(circle at center, #93c5fd, transparent)
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
                   `,
+                  backgroundSize: "40px 40px",
                 }} 
               />
               <div className="relative z-10">
@@ -163,13 +167,15 @@ export default function Home() {
 
             {/* Decentralized */}
             <div className="border border-gray-200 rounded-xl p-8 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
-              {/* Light Sky Blue Glow */}
+              {/* Diagonal Grid with Blue */}
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
                 style={{
                   backgroundImage: `
-                    radial-gradient(circle at center, #93c5fd, transparent)
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
                   `,
+                  backgroundSize: "40px 40px",
                 }} 
               />
               <div className="relative z-10">
@@ -205,13 +211,15 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* For Data Sellers */}
             <div className="border border-gray-200 rounded-xl p-8 bg-white relative overflow-hidden">
-              {/* Light Sky Blue Glow */}
+              {/* Diagonal Grid with Blue */}
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
                 style={{
                   backgroundImage: `
-                    radial-gradient(circle at center, #93c5fd, transparent)
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
                   `,
+                  backgroundSize: "40px 40px",
                 }} 
               />
               <div className="relative z-10">
@@ -244,13 +252,15 @@ export default function Home() {
 
             {/* For Data Buyers */}
             <div className="border border-gray-200 rounded-xl p-8 bg-white relative overflow-hidden">
-              {/* Light Sky Blue Glow */}
+              {/* Diagonal Grid with Blue */}
               <div 
                 className="absolute inset-0 z-0 pointer-events-none" 
                 style={{
                   backgroundImage: `
-                    radial-gradient(circle at center, #93c5fd, transparent)
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
                   `,
+                  backgroundSize: "40px 40px",
                 }} 
               />
               <div className="relative z-10">

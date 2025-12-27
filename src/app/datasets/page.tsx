@@ -114,7 +114,19 @@ export default function DatasetsPage() {
           </div>
 
           {/* Query Builder CTA */}
-          <div className="border border-gray-200 rounded-xl p-8 mb-12 bg-white">
+          <div className="border border-gray-200 rounded-xl p-8 mb-12 bg-white relative overflow-hidden">
+            {/* Diagonal Grid with Blue */}
+            <div
+              className="absolute inset-0 z-0 pointer-events-none"
+              style={{
+                backgroundImage: `
+                  repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                  repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                `,
+                backgroundSize: "40px 40px",
+              }}
+            />
+            <div className="relative z-10">
             <div className="flex flex-col lg:flex-row items-center justify-between">
               <div className="mb-6 lg:mb-0">
                 <h3 className="text-2xl font-bold mb-2 text-black">Custom Query Builder</h3>
@@ -126,19 +138,22 @@ export default function DatasetsPage() {
                 Launch Query Builder
               </button>
             </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Search and Filters */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">
@@ -207,13 +222,15 @@ export default function DatasetsPage() {
 
       {/* Query Templates */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">
@@ -255,13 +272,15 @@ export default function DatasetsPage() {
 
       {/* How It Works */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">

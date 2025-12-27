@@ -129,13 +129,15 @@ export default function MarketplacePage() {
       
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto text-center">
@@ -150,13 +152,15 @@ export default function MarketplacePage() {
 
       {/* Search and Filters */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">
@@ -215,13 +219,15 @@ export default function MarketplacePage() {
 
       {/* Results */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">

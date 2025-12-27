@@ -39,7 +39,19 @@ export default function QueryCard({ query }: QueryCardProps) {
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow bg-white">
+    <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
+      {/* Diagonal Grid with Blue */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+            repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+          `,
+          backgroundSize: "40px 40px",
+        }}
+      />
+      <div className="relative z-10">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -96,6 +108,7 @@ export default function QueryCard({ query }: QueryCardProps) {
         <button className="px-4 py-2 border border-gray-300 text-black hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
           Preview
         </button>
+      </div>
       </div>
     </div>
   );

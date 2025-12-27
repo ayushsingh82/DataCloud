@@ -46,17 +46,31 @@ export default function BuyersPage() {
 
       {/* Query Builder */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="border border-gray-200 rounded-xl p-8 bg-white">
+          <div className="border border-gray-200 rounded-xl p-8 bg-white relative overflow-hidden">
+            {/* Diagonal Grid with Blue */}
+            <div
+              className="absolute inset-0 z-0 pointer-events-none"
+              style={{
+                backgroundImage: `
+                  repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                  repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                `,
+                backgroundSize: "40px 40px",
+              }}
+            />
+            <div className="relative z-10">
             <h2 className="text-2xl font-bold mb-6 text-black">Query Builder</h2>
             <p className="text-gray-600 mb-8">
               Build and execute privacy-preserving queries on encrypted datasets
@@ -97,7 +111,19 @@ export default function BuyersPage() {
 
               {/* Query Parameters */}
               {selectedQuery && (
-                <div className="border border-gray-200 rounded-lg p-6 bg-white">
+                <div className="border border-gray-200 rounded-lg p-6 bg-white relative overflow-hidden">
+                  {/* Diagonal Grid with Blue */}
+                  <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{
+                      backgroundImage: `
+                        repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                        repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                      `,
+                      backgroundSize: "40px 40px",
+                    }}
+                  />
+                  <div className="relative z-10">
                   <h3 className="font-semibold mb-4">Query Parameters</h3>
                   
                   {selectedQuery === 'aggregation' && (
@@ -189,12 +215,25 @@ export default function BuyersPage() {
                       </div>
                     </div>
                   )}
+                  </div>
                 </div>
               )}
 
               {/* Cost Estimate */}
               {selectedDataset && selectedQuery && (
-                <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                <div className="border border-gray-200 rounded-lg p-4 bg-white relative overflow-hidden">
+                  {/* Diagonal Grid with Blue */}
+                  <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{
+                      backgroundImage: `
+                        repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                        repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                      `,
+                      backgroundSize: "40px 40px",
+                    }}
+                  />
+                  <div className="relative z-10">
                   <div className="flex justify-between items-center">
                     <div>
                       <h4 className="font-semibold">Estimated Cost</h4>
@@ -204,6 +243,7 @@ export default function BuyersPage() {
                       <div className="text-2xl font-bold text-[#0090FF]">0.08 FIL</div>
                       <p className="text-xs text-gray-600">~$2.40 USD</p>
                     </div>
+                  </div>
                   </div>
                 </div>
               )}
@@ -223,19 +263,22 @@ export default function BuyersPage() {
                 </div>
               </div>
             </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">
@@ -254,7 +297,19 @@ export default function BuyersPage() {
               <p className="text-gray-600 mb-6">
                 Browse our marketplace of verified datasets with detailed metadata, schema information, and sample statistics.
               </p>
-              <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <div className="border border-gray-200 rounded-lg p-4 bg-white relative overflow-hidden">
+                {/* Diagonal Grid with Blue */}
+                <div
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `
+                      repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                      repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                    `,
+                    backgroundSize: "40px 40px",
+                  }}
+                />
+                <div className="relative z-10">
                 <h4 className="font-semibold mb-2">What you get:</h4>
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li>• Dataset schema & size</li>
@@ -262,6 +317,7 @@ export default function BuyersPage() {
                   <li>• Usage statistics</li>
                   <li>• Provider verification</li>
                 </ul>
+                </div>
               </div>
             </div>
 
@@ -274,7 +330,19 @@ export default function BuyersPage() {
               <p className="text-gray-600 mb-6">
                 Use our query builder to create custom analytics, ML training jobs, or statistical analyses with transparent pricing.
               </p>
-              <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <div className="border border-gray-200 rounded-lg p-4 bg-white relative overflow-hidden">
+                {/* Diagonal Grid with Blue */}
+                <div
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `
+                      repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                      repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                    `,
+                    backgroundSize: "40px 40px",
+                  }}
+                />
+                <div className="relative z-10">
                 <h4 className="font-semibold mb-2">Query Types:</h4>
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li>• Statistical aggregations</li>
@@ -282,6 +350,7 @@ export default function BuyersPage() {
                   <li>• Cohort analysis</li>
                   <li>• Custom analytics</li>
                 </ul>
+                </div>
               </div>
             </div>
 
@@ -294,7 +363,19 @@ export default function BuyersPage() {
               <p className="text-gray-600 mb-6">
                 Receive cryptographically verified results with proof of execution. Download reports or integrate via API.
               </p>
-              <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <div className="border border-gray-200 rounded-lg p-4 bg-white relative overflow-hidden">
+                {/* Diagonal Grid with Blue */}
+                <div
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `
+                      repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                      repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                    `,
+                    backgroundSize: "40px 40px",
+                  }}
+                />
+                <div className="relative z-10">
                 <h4 className="font-semibold mb-2">Guarantees:</h4>
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li>• Proof of execution</li>
@@ -302,6 +383,7 @@ export default function BuyersPage() {
                   <li>• Result authenticity</li>
                   <li>• Query audit trail</li>
                 </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -310,13 +392,15 @@ export default function BuyersPage() {
 
       {/* Use Cases */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-7xl mx-auto">
@@ -357,10 +441,23 @@ export default function BuyersPage() {
                 description: 'Logistics optimization, demand planning, and supply chain risk assessment.'
               }
             ].map((useCase, index) => (
-              <div key={index} className="border border-gray-200 rounded-xl p-6 hover:bg-gray-50 transition-opacity bg-white">
+              <div key={index} className="border border-gray-200 rounded-xl p-6 hover:bg-gray-50 transition-opacity bg-white relative overflow-hidden">
+                {/* Diagonal Grid with Blue */}
+                <div
+                  className="absolute inset-0 z-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `
+                      repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                      repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                    `,
+                    backgroundSize: "40px 40px",
+                  }}
+                />
+                <div className="relative z-10">
                 <div className="text-4xl mb-4">{useCase.icon}</div>
                 <h3 className="text-xl font-semibold mb-3">{useCase.title}</h3>
                 <p className="text-gray-600">{useCase.description}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -369,13 +466,15 @@ export default function BuyersPage() {
 
       {/* Pricing */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Light Sky Blue Glow */}
+        {/* Diagonal Grid with Blue */}
         <div 
           className="absolute inset-0 z-0 pointer-events-none" 
           style={{
             backgroundImage: `
-              radial-gradient(circle at center, #93c5fd, transparent)
+              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
             `,
+            backgroundSize: "40px 40px",
           }} 
         />
         <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -385,7 +484,19 @@ export default function BuyersPage() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border border-gray-200 rounded-xl p-6 bg-white">
+            <div className="border border-gray-200 rounded-xl p-6 bg-white relative overflow-hidden">
+              {/* Diagonal Grid with Blue */}
+              <div
+                className="absolute inset-0 z-0 pointer-events-none"
+                style={{
+                  backgroundImage: `
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                  `,
+                  backgroundSize: "40px 40px",
+                }}
+              />
+              <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-2 text-black">Simple Queries</h3>
               <div className="text-3xl font-bold text-[#0090FF] mb-4">0.01-0.05 FIL</div>
               <ul className="text-sm text-gray-600 space-y-2">
@@ -393,22 +504,48 @@ export default function BuyersPage() {
                 <li>• Statistical summaries</li>
                 <li>• Count operations</li>
               </ul>
+              </div>
             </div>
 
-            <div className="border border-[#0090FF] rounded-xl p-6 relative bg-white">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#0090FF] text-white px-3 py-1 rounded-full text-xs font-medium">
-                Most Popular
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-black">Analytics</h3>
+            <div className="border border-[#0090FF] rounded-xl p-6 relative bg-white overflow-hidden">
+              {/* Diagonal Grid with Blue */}
+              <div
+                className="absolute inset-0 z-0 pointer-events-none"
+                style={{
+                  backgroundImage: `
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                  `,
+                  backgroundSize: "40px 40px",
+                }}
+              />
+              <div className="relative z-10">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#0090FF] text-white px-3 py-1 rounded-full text-xs font-medium">
+                  Most Popular
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-black">Analytics</h3>
               <div className="text-3xl font-bold text-[#0090FF] mb-4">0.05-0.15 FIL</div>
               <ul className="text-sm text-gray-600 space-y-2">
                 <li>• Cohort analysis</li>
                 <li>• Correlation studies</li>
                 <li>• Complex aggregations</li>
               </ul>
+              </div>
             </div>
 
-            <div className="border border-gray-200 rounded-xl p-6 bg-white">
+            <div className="border border-gray-200 rounded-xl p-6 bg-white relative overflow-hidden">
+              {/* Diagonal Grid with Blue */}
+              <div
+                className="absolute inset-0 z-0 pointer-events-none"
+                style={{
+                  backgroundImage: `
+                    repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
+                    repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
+                  `,
+                  backgroundSize: "40px 40px",
+                }}
+              />
+              <div className="relative z-10">
               <h3 className="text-lg font-semibold mb-2 text-black">ML Training</h3>
               <div className="text-3xl font-bold text-[#0090FF] mb-4">0.15-0.50 FIL</div>
               <ul className="text-sm text-gray-600 space-y-2">
@@ -416,6 +553,7 @@ export default function BuyersPage() {
                 <li>• Feature engineering</li>
                 <li>• Cross-validation</li>
               </ul>
+              </div>
             </div>
           </div>
 
