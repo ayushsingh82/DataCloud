@@ -39,48 +39,37 @@ export default function QueryCard({ query }: QueryCardProps) {
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
-      {/* Diagonal Grid with Blue */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
-            repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
-          `,
-          backgroundSize: "40px 40px",
-        }}
-      />
+    <div className="border border-gray-700 rounded-xl p-6 hover:border-[#EBF73F] transition-shadow bg-[#141414] relative overflow-hidden">
       <div className="relative z-10">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-[#0090FF] rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-[#EBF73F] rounded-lg flex items-center justify-center">
             <span className="text-lg">{getTypeIcon(query.type)}</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-black">{query.name}</h3>
-            <span className="text-sm text-gray-600 capitalize">{query.type}</span>
+            <h3 className="text-lg font-semibold text-white">{query.name}</h3>
+            <span className="text-sm text-gray-400 capitalize">{query.type}</span>
           </div>
         </div>
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border border-gray-200 bg-[#0090FF] text-white">
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border border-gray-700 bg-[#EBF73F] text-black">
           {query.complexity} complexity
         </span>
       </div>
 
       {/* Description */}
-      <p className="text-gray-600 text-sm mb-4">
+      <p className="text-gray-400 text-sm mb-4">
         {query.description}
       </p>
 
       {/* Supported Data Types */}
       <div className="mb-4">
-        <span className="text-xs text-gray-600 block mb-2">Supported Data Types:</span>
+        <span className="text-xs text-gray-400 block mb-2">Supported Data Types:</span>
         <div className="flex flex-wrap gap-1">
           {query.supportedDataTypes.map((type, index) => (
             <span
               key={index}
-              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border border-gray-200 text-gray-600 bg-white"
+              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border border-gray-800 text-gray-400 bg-black"
             >
               {type}
             </span>
@@ -91,21 +80,21 @@ export default function QueryCard({ query }: QueryCardProps) {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
         <div>
-          <span className="text-gray-600">Execution:</span>
-          <span className="text-black ml-2">{query.executionTime}</span>
+          <span className="text-gray-400">Execution:</span>
+          <span className="text-white ml-2">{query.executionTime}</span>
         </div>
         <div>
-          <span className="text-gray-600">Price:</span>
-          <span className="text-[#0090FF] ml-2 font-semibold">{query.price}</span>
+          <span className="text-gray-400">Price:</span>
+          <span className="text-[#EBF73F] ml-2 font-semibold">{query.price}</span>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex space-x-2">
-        <button className="flex-1 bg-[#0090FF] hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button className="flex-1 bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Run Query
         </button>
-        <button className="px-4 py-2 border border-gray-300 text-black hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors">
+        <button className="px-4 py-2 border border-gray-700 text-white hover:border-[#EBF73F] rounded-lg text-sm font-medium transition-colors">
           Preview
         </button>
       </div>

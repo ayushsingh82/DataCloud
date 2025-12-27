@@ -86,18 +86,7 @@ export default function DatasetsPage() {
   });
 
   return (
-    <div className="min-h-screen w-full bg-[#fafafa] relative text-gray-900">
-      {/* Diagonal Grid with Blue */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
-            repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
-          `,
-          backgroundSize: "40px 40px",
-        }}
-      />
+    <div className="min-h-screen w-full bg-black relative text-white">
       <div className="relative z-10">
         <Navbar />
       
@@ -105,36 +94,25 @@ export default function DatasetsPage() {
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-black">
-              Available <span className="text-[#0090FF]">Query Templates</span>
+            <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
+              Available <span className="text-[#EBF73F]">Query Templates</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
               Run privacy-preserving queries on encrypted datasets. Choose from pre-built templates or create custom queries.
             </p>
           </div>
 
           {/* Query Builder CTA */}
-          <div className="border border-gray-200 rounded-xl p-8 mb-12 bg-white relative overflow-hidden">
-            {/* Diagonal Grid with Blue */}
-            <div
-              className="absolute inset-0 z-0 pointer-events-none"
-              style={{
-                backgroundImage: `
-                  repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
-                  repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
-                `,
-                backgroundSize: "40px 40px",
-              }}
-            />
+          <div className="border border-gray-700 rounded-xl p-8 mb-12 bg-[#141414] relative overflow-hidden">
             <div className="relative z-10">
             <div className="flex flex-col lg:flex-row items-center justify-between">
               <div className="mb-6 lg:mb-0">
-                <h3 className="text-2xl font-bold mb-2 text-black">Custom Query Builder</h3>
-                <p className="text-gray-600">
+                <h3 className="text-2xl font-bold mb-2 text-white">Custom Query Builder</h3>
+                <p className="text-gray-400">
                   Need a specific analysis? Use our query builder to create custom computations.
                 </p>
               </div>
-              <button className="bg-[#0090FF] hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+              <button className="bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-8 py-3 rounded-lg font-semibold transition-colors">
                 Launch Query Builder
               </button>
             </div>
@@ -144,18 +122,7 @@ export default function DatasetsPage() {
       </section>
 
       {/* Search and Filters */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Diagonal Grid with Blue */}
-        <div 
-          className="absolute inset-0 z-0 pointer-events-none" 
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
-              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
-            `,
-            backgroundSize: "40px 40px",
-          }} 
-        />
+      <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-center mb-6">
             {/* Search */}
@@ -166,7 +133,7 @@ export default function DatasetsPage() {
                   placeholder="Search query templates..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 pl-10 text-black placeholder-gray-400 bg-white focus:border-[#0090FF] focus:outline-none"
+                  className="w-full border border-gray-700 rounded-lg px-4 py-3 pl-10 text-white placeholder-gray-400 bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
                 />
                 <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -179,7 +146,7 @@ export default function DatasetsPage() {
           <div className="flex flex-wrap gap-6">
             {/* Query Type */}
             <div>
-              <span className="text-gray-600 text-sm block mb-2">Query Type:</span>
+              <span className="text-gray-400 text-sm block mb-2">Query Type:</span>
               <div className="flex flex-wrap gap-2">
                 {queryTypes.map((type) => (
                   <button
@@ -187,8 +154,8 @@ export default function DatasetsPage() {
                     onClick={() => setSelectedType(type)}
                     className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors border ${
                       selectedType === type
-                        ? 'bg-[#0090FF] text-white border-gray-200'
-                        : 'border-gray-200 text-gray-600 hover:text-black bg-white'
+                        ? 'bg-[#EBF73F] text-black border-gray-700'
+                        : 'border-gray-700 text-gray-400 hover:text-white bg-[#141414]'
                     }`}
                   >
                     {type}
@@ -199,7 +166,7 @@ export default function DatasetsPage() {
 
             {/* Complexity */}
             <div>
-              <span className="text-gray-600 text-sm block mb-2">Complexity:</span>
+              <span className="text-gray-400 text-sm block mb-2">Complexity:</span>
               <div className="flex flex-wrap gap-2">
                 {complexityLevels.map((complexity) => (
                   <button
@@ -207,8 +174,8 @@ export default function DatasetsPage() {
                     onClick={() => setSelectedComplexity(complexity)}
                     className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors border ${
                       selectedComplexity === complexity
-                        ? 'bg-[#0090FF] text-white border-gray-200'
-                        : 'border-gray-200 text-gray-600 hover:text-black bg-white'
+                        ? 'bg-[#EBF73F] text-black border-gray-700'
+                        : 'border-gray-700 text-gray-400 hover:text-white bg-[#141414]'
                     }`}
                   >
                     {complexity}
@@ -222,20 +189,9 @@ export default function DatasetsPage() {
 
       {/* Query Templates */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Diagonal Grid with Blue */}
-        <div 
-          className="absolute inset-0 z-0 pointer-events-none" 
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
-              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
-            `,
-            backgroundSize: "40px 40px",
-          }} 
-        />
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-black">
+            <h2 className="text-2xl font-bold text-white">
               {filteredQueries.length} Query Template{filteredQueries.length !== 1 ? 's' : ''}
             </h2>
           </div>
@@ -251,8 +207,8 @@ export default function DatasetsPage() {
           {filteredQueries.length === 0 && (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2 text-black">No query templates found</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-white">No query templates found</h3>
+              <p className="text-gray-400 mb-6">
                 Try adjusting your search terms or filters
               </p>
               <button
@@ -261,7 +217,7 @@ export default function DatasetsPage() {
                   setSelectedType('All');
                   setSelectedComplexity('All');
                 }}
-                className="bg-[#0090FF] hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors font-semibold"
+                className="bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-6 py-2 rounded-lg transition-colors font-semibold"
               >
                 Clear Filters
               </button>
@@ -271,49 +227,38 @@ export default function DatasetsPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-200 relative overflow-hidden">
-        {/* Diagonal Grid with Blue */}
-        <div 
-          className="absolute inset-0 z-0 pointer-events-none" 
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px),
-              repeating-linear-gradient(-45deg, rgba(0, 144, 255, 0.1) 0, rgba(0, 144, 255, 0.1) 1px, transparent 1px, transparent 20px)
-            `,
-            backgroundSize: "40px 40px",
-          }} 
-        />
+      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-black">How Privacy-Preserving Queries Work</h2>
-            <p className="text-xl text-gray-600">Your data stays encrypted. Only results are revealed.</p>
+            <h2 className="text-3xl font-bold mb-4 text-white">How Privacy-Preserving Queries Work</h2>
+            <p className="text-xl text-gray-400">Your data stays encrypted. Only results are revealed.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#0090FF] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🔐</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-black">Encrypted Execution</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-semibold mb-2 text-white">Encrypted Execution</h3>
+              <p className="text-gray-400">
                 Queries run inside secure enclaves using Synapse SDK. Raw data never leaves the secure environment.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#0090FF] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">✅</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-black">Verified Results</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-semibold mb-2 text-white">Verified Results</h3>
+              <p className="text-gray-400">
                 All computations are cryptographically attested with proof of execution and data integrity.
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#0090FF] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">💰</span>
               </div>
-              <h3 className="text-lg font-semibold mb-2 text-black">Fair Payment</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-semibold mb-2 text-white">Fair Payment</h3>
+              <p className="text-gray-400">
                 Pay only for successful query execution. Automatic refunds for failed computations.
               </p>
             </div>
