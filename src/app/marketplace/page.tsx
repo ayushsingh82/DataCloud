@@ -112,24 +112,24 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="min-h-screen w-full bg-black relative text-white">
+    <div className="min-h-screen w-full bg-[#C4FEC2] relative text-black">
       <div className="relative z-10">
         <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-[#C4FEC2]">
         <div className="relative z-10 max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-            Data <span className="text-[#EBF73F]">Marketplace</span>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-black">
+            Data <span className="text-black">Marketplace</span>
           </h1>
-          <p className="text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-black/70 mb-8 max-w-3xl mx-auto">
             Discover privacy-preserving datasets and run secure queries without accessing raw data
           </p>
         </div>
       </section>
 
       {/* Search and Filters */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2] relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-center">
             {/* Search */}
@@ -140,9 +140,9 @@ export default function MarketplacePage() {
                   placeholder="Search datasets, categories, or tags..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full border border-gray-700 rounded-lg px-4 py-3 pl-10 text-white placeholder-gray-500 focus:border-[#EBF73F] focus:outline-none bg-[#141414]"
+                  className="w-full border border-black/20 rounded-lg px-4 py-3 pl-10 text-black placeholder-black/50 focus:border-black focus:outline-none bg-white"
                 />
-                <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="absolute left-3 top-3.5 w-5 h-5 text-black/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -150,11 +150,11 @@ export default function MarketplacePage() {
 
             {/* Sort */}
             <div className="flex items-center space-x-4">
-              <span className="text-gray-400 text-sm">Sort by:</span>
+              <span className="text-black/70 text-sm">Sort by:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-[#EBF73F] focus:outline-none bg-[#141414]"
+                className="border border-black/20 rounded-lg px-3 py-2 text-black focus:border-black focus:outline-none bg-white"
               >
                 <option value="recent">Most Recent</option>
                 <option value="price-low">Price: Low to High</option>
@@ -173,8 +173,8 @@ export default function MarketplacePage() {
                 onClick={() => setSelectedCategory(category)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                       selectedCategory === category
-                        ? 'bg-[#EBF73F] text-black border-gray-700'
-                        : 'border-gray-700 text-gray-400 hover:text-white bg-[#141414]'
+                        ? 'bg-black text-white border-transparent'
+                        : 'border-black/20 text-black hover:border-black bg-white'
                     }`}
               >
                 {category}
@@ -185,13 +185,13 @@ export default function MarketplacePage() {
       </section>
 
       {/* Results */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2] relative overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-black">
               {filteredDatasets.length} Dataset{filteredDatasets.length !== 1 ? 's' : ''} Found
             </h2>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-black/70">
               Showing {sortedDatasets.length} of {mockDatasets.length} datasets
             </div>
           </div>
@@ -206,9 +206,11 @@ export default function MarketplacePage() {
           {/* Empty State */}
           {sortedDatasets.length === 0 && (
             <div className="text-center py-16">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-xl font-semibold mb-2 text-white">No datasets found</h3>
-              <p className="text-gray-400 mb-6">
+              <svg className="w-16 h-16 mx-auto mb-4 text-black/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <h3 className="text-xl font-semibold mb-2 text-black">No datasets found</h3>
+              <p className="text-black/70 mb-6">
                 Try adjusting your search terms or category filters
               </p>
               <button
@@ -216,7 +218,7 @@ export default function MarketplacePage() {
                   setSearchTerm('');
                   setSelectedCategory('All');
                 }}
-                className="bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-6 py-2 rounded-lg transition-colors font-semibold"
+                className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg font-semibold"
               >
                 Clear Filters
               </button>

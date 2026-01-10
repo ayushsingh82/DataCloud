@@ -9,24 +9,24 @@ export default function BuyersPage() {
   const [selectedQuery, setSelectedQuery] = useState('');
 
   return (
-    <div className="min-h-screen w-full bg-black relative text-white">
+    <div className="min-h-screen w-full bg-[#C4FEC2] relative text-black">
       <div className="relative z-10">
         <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-white">
-            Access Premium Data <span className="text-[#EBF73F]">Insights</span>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-black">
+            Access Premium Data <span className="text-black">Insights</span>
           </h1>
-          <p className="text-xl text-gray-400 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl text-black/70 mb-8 max-w-3xl mx-auto">
             Run privacy-preserving analytics on high-quality datasets without accessing raw data. Get verified results with cryptographic proofs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-8 py-4 rounded-lg font-semibold text-lg transition-colors">
+            <button className="bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg">
               Browse Datasets
             </button>
-            <button className="border border-gray-700 text-white hover:bg-gray-50 px-8 py-4 rounded-lg font-semibold text-lg transition-opacity">
+            <button className="border border-black/30 text-black hover:border-black hover:bg-white/50 bg-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300">
               Try Sample Query
             </button>
           </div>

@@ -3,25 +3,25 @@ import Footer from '@/components/Footer';
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white">
+    <div className="min-h-screen bg-[#C4FEC2] text-black">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-6">
-            DataCloud <span className="text-blue-500">Documentation</span>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-black">
+            DataCloud <span className="text-black">Documentation</span>
           </h1>
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-xl text-black/70 mb-8">
             Learn how to build privacy-preserving data applications with DataCloud
           </p>
         </div>
       </section>
 
       {/* Documentation Content */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8">
+      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-black/50 border border-gray-800 rounded-xl p-8">
+          <div className="bg-white border border-transparent rounded-xl p-8 shadow-lg">
             
             {/* Table of Contents */}
             <div className="mb-12">
