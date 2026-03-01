@@ -17,34 +17,38 @@ This document outlines all the updates and implementations made to transform the
 - **ProofManager Contract** - Verifies PDP proofs and maintains data health scores
 
 ### Technology Stack
-- **Frontend:** Next.js 14 with TypeScript and Tailwind CSS
+- **Frontend:** Next.js 16 with TypeScript and Tailwind CSS
 - **Storage:** Filecoin + IPFS integration ready
 - **Privacy:** Synapse SDK integration planned
-- **Blockchain:** Smart contract interfaces with ABI definitions
+- **Blockchain:** Smart contract interfaces with ABI definitions; `DataCloudContracts` class supports demo mode (works without a live blockchain)
 
 ## 📁 File Structure Created
 
 ```
-my-app/
+├── .env.example                        # Environment variable template
 ├── src/
 │   ├── components/
-│   │   ├── Navbar.tsx              # Navigation with wallet connection
-│   │   ├── Footer.tsx              # Professional footer with links
-│   │   ├── DatasetCard.tsx         # Reusable dataset display component
-│   │   └── QueryCard.tsx           # Query template display component
+│   │   ├── Navbar.tsx                  # Navigation with wallet connection
+│   │   ├── Footer.tsx                  # Professional footer with links
+│   │   ├── DatasetCard.tsx             # Reusable dataset display component
+│   │   ├── QueryCard.tsx               # Query template display component
+│   │   └── providers.tsx               # Wagmi / RainbowKit / React-Query providers
 │   ├── app/
-│   │   ├── page.tsx                # Updated landing page
-│   │   ├── marketplace/page.tsx    # Dataset marketplace
-│   │   ├── datasets/page.tsx       # Query templates page
-│   │   ├── sellers/page.tsx        # Data seller dashboard
-│   │   ├── buyers/page.tsx         # Data buyer interface
-│   │   ├── docs/page.tsx          # Documentation page
+│   │   ├── page.tsx                    # Updated landing page
+│   │   ├── layout.tsx                  # Root layout (title, fonts, providers)
+│   │   ├── marketplace/page.tsx        # Dataset marketplace
+│   │   ├── datasets/page.tsx           # Query templates page
+│   │   ├── sellers/page.tsx            # Data seller dashboard
+│   │   ├── buyers/page.tsx             # Data buyer interface
+│   │   ├── docs/page.tsx               # Documentation page
 │   │   └── api/
-│   │       ├── datasets/route.ts   # Dataset CRUD API
-│   │       └── queries/route.ts    # Query order API
+│   │       ├── datasets/route.ts       # Dataset CRUD API (GET/POST/DELETE)
+│   │       ├── queries/route.ts        # Query order API (GET/POST with status transitions)
+│   │       └── stats/route.ts          # Platform statistics API (GET)
 │   └── lib/
-│       └── contracts.ts            # Smart contract interfaces
-└── UPDATES.md                      # This documentation file
+│       ├── contracts.ts                # Smart contract interfaces + demo mode
+│       └── store.ts                    # In-memory data store with CRUD helpers
+└── UPDATES.md                          # This documentation file
 ```
 
 ## 🎨 Design Implementation
@@ -108,16 +112,23 @@ my-app/
 ## 📡 API Implementation
 
 ### Dataset API (`/api/datasets`)
-- **GET** - Fetch datasets with filtering and pagination
-- **POST** - Register new datasets with validation
-- **Query Parameters:** category, search, verified, limit, offset
-- **Mock Data** with realistic dataset examples
+- **GET** - Fetch datasets with filtering and pagination (params: category, search, verified, id, limit, offset)
+- **POST** - Register new datasets with field validation (title length, price, query-type checks)
+- **DELETE** - Remove a dataset by id
+- **Data** sourced from in-memory store (`src/lib/store.ts`), seeded with realistic examples
 
 ### Query API (`/api/queries`)
-- **GET** - Fetch query orders with status tracking
-- **POST** - Create new query orders with execution simulation
-- **Order Management** with status updates (pending, executing, completed)
-- **Pricing Calculation** based on query type and complexity
+- **GET** - Fetch query orders with filtering (datasetId, buyer, status, id) and pagination
+- **POST** - Create new query orders **or** transition an existing order's status (execute/complete/fail/refund)
+- **Status Transitions** with validation (pending -> executing -> completed, with fail/refund paths)
+- **Automatic Price Calculation** based on query type multiplier and dataset base price
+- **Simulated Execution** pipeline (pending -> executing -> completed over ~30-90 s)
+
+### Stats API (`/api/stats`)
+- **GET** - Returns aggregate platform statistics computed from the in-memory store
+- **Metrics:** total datasets, total queries, verified count, total volume/revenue, average price
+- **Breakdowns:** orders by status, datasets by category (count, queries, revenue)
+- **Recent Activity:** unified timeline of dataset and query events (newest first, up to 20)
 
 ## 🔒 Privacy & Security Features
 
@@ -161,15 +172,12 @@ my-app/
 - **Search Functionality** across query names and descriptions
 - **Parameter Configuration** with guided forms
 
-## 📊 Mock Data Implementation
+## 📊 Seed Data (In-Memory Store)
 
-### Sample Datasets
+### Sample Datasets (seeded in `store.ts`)
 1. **Financial Transactions** - 2.3GB, 1,247 queries, verified
-2. **Healthcare Research** - 5.7GB, 892 queries, verified  
+2. **Healthcare Research** - 5.7GB, 892 queries, verified
 3. **E-commerce Behavior** - 1.8GB, 2,156 queries, unverified
-4. **Climate Data** - 4.2GB, 567 queries, verified
-5. **Social Media Sentiment** - 3.1GB, 1,834 queries, verified
-6. **Supply Chain Logistics** - 2.9GB, 743 queries, verified
 
 ### Query Templates
 - **Statistical Aggregation** (SUM, AVG, COUNT operations)
@@ -191,7 +199,7 @@ my-app/
 ### Developer Experience
 - **Clean Code Structure** with separation of concerns
 - **Comprehensive Documentation** with examples
-- **Mock Data** for development and testing
+- **In-memory data store** with seed data for development and testing
 - **Type Definitions** for all data structures
 - **Consistent Styling** with Tailwind CSS
 
@@ -229,10 +237,13 @@ my-app/
 ## 🛠️ Development Setup
 
 ### Prerequisites Met
-- **Next.js 14** with App Router
+- **Next.js 16** with App Router
 - **TypeScript** configuration
 - **Tailwind CSS** with custom theme
-- **ESLint** and **Prettier** setup
+- **ESLint** configured for Next.js 16 (flat config, `eslint.config.mjs`)
+- **Dependencies installed** (`node_modules` present)
+- **`.env.example`** provided for environment variable setup
+- **Build and lint both pass**
 - **Git** version control
 
 ### Ready for Integration
@@ -277,10 +288,13 @@ my-app/
 - [x] Complete UI/UX design implementation
 - [x] All main pages and navigation
 - [x] Responsive design across devices
-- [x] Mock data and API endpoints
-- [x] Smart contract interfaces
+- [x] In-memory data store (`src/lib/store.ts`) with CRUD helpers
+- [x] CRUD API endpoints (datasets, queries, stats)
+- [x] Smart contract interfaces with demo mode (`DataCloudContracts`)
 - [x] Component architecture
 - [x] TypeScript integration
+- [x] `.env.example` and ESLint config for Next.js 16
+- [x] Build and lint both pass
 - [x] Documentation and examples
 
 ### 🔄 Ready for Next Phase
@@ -288,10 +302,29 @@ my-app/
 - [ ] Smart contract deployment
 - [ ] IPFS file handling
 - [ ] Synapse SDK integration
-- [ ] Database implementation
+- [ ] Persistent database (in-memory store exists for demo)
 - [ ] Testing and deployment
 
 ## 📝 Recent Updates (Latest Session)
+
+### In-Memory Data Store
+- **Created** `src/lib/store.ts` with seed data and CRUD helpers (getDatasets, addDataset, deleteDataset, getQueries, addQuery, updateQueryStatus)
+- **Replaced** inline mock arrays in API routes with store imports
+
+### API Improvements
+- **Dataset API** — added field validation (title length, price, query-type), DELETE support, single-item lookup by id
+- **Query API** — added status transition support (execute/complete/fail/refund), automatic price calculation, simulated execution pipeline, filtering by datasetId/buyer/status
+- **Stats API** — new `/api/stats` endpoint with aggregate metrics, category breakdown, and recent activity timeline
+
+### contracts.ts Demo Mode
+- **Added** `DataCloudContracts` class with `demoMode` flag — delegates to in-memory store when no blockchain provider is supplied
+- **Implemented** all contract methods (registerDataset, getDataset, updateDataset, createQueryOrder, getQueryOrder, executeQuery, submitProof, verifyProof, getDatasetHealth)
+
+### Build & Tooling
+- **Fixed** ESLint config for Next.js 16 (flat config in `eslint.config.mjs`)
+- **Created** `.env.example` with WalletConnect, Filecoin RPC, database, and IPFS gateway vars
+- **Updated** layout title to "DataCloud - Privacy-Preserving Data Marketplace"
+- **Dependencies** installed; both `next build` and `next lint` pass
 
 ### Navbar Modifications
 - **Removed** "Docs" link from navigation menu
@@ -300,4 +333,4 @@ my-app/
 - **Updated** mobile navigation accordingly
 - **Maintained** "Connect Wallet" as primary CTA
 
-The DataCloud project is now a fully functional, production-ready decentralized data marketplace with all core features implemented and ready for blockchain integration.
+The DataCloud project is now a fully functional decentralized data marketplace demo with all core features implemented, build and lint passing, and ready for blockchain integration.

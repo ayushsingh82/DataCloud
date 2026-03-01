@@ -62,8 +62,8 @@ A Filecoin-native marketplace where organizations sell privacy-preserving querie
 - **Privacy Compute**: Synapse SDK (encrypted/secure queries/ML)
 - **Proofs**: PDP prover/receipt (MVP: simplified PoR-style, then full PDP)
 - **On-chain**: Solidity, Foundry/Hardhat; Ethers; optional Filecoin EVM
-- **Backend**: Node.js broker; Python/Node workers
-- **Frontend**: Next.js + Wagmi + RainbowKit
+- **Frontend / API**: Next.js 16 (App Router) + Wagmi + RainbowKit
+- **Data Layer**: In-memory store with CRUD helpers (demo); database-ready in production
 
 ## 🚀 Getting Started
 
@@ -77,7 +77,7 @@ A Filecoin-native marketplace where organizations sell privacy-preserving querie
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd data-cloud/my-app
+cd DataCloud
 ```
 
 2. Install dependencies:

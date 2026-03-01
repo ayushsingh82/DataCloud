@@ -1,61 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { QueryOrder, QueryType, OrderStatus } from '@/lib/contracts';
+import {
+  getQueries,
+  getQueryById,
+  addQuery,
+  updateQueryStatus,
+  getDatasetById,
+} from '@/lib/store';
 
-// Mock data store for query orders
-const mockOrders: QueryOrder[] = [
-  {
-    id: '1',
-    datasetId: '1',
-    buyer: '0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5',
-    queryType: QueryType.AGGREGATION,
-    parameters: {
-      function: 'AVG',
-      column: 'transaction_amount',
-      groupBy: 'age_group'
-    },
-    price: '0.05',
-    status: OrderStatus.COMPLETED,
-    createdAt: Date.now() - 3600000, // 1 hour ago
-    executedAt: Date.now() - 3300000, // 55 minutes ago
-    resultCid: 'QmResult1234567890abcdef',
-    attestation: {
-      datasetId: '1',
-      queryHash: '0xquery123',
-      resultHash: '0xresult123',
-      workerId: 'worker-001',
-      timestamp: Date.now() - 3300000,
-      signature: '0xsignature123'
-    }
-  },
-  {
-    id: '2',
-    datasetId: '2',
-    buyer: '0x742d35Cc6634C0532925a3b8D0c7b3a7D5d4c6f8',
-    queryType: QueryType.ML_TRAINING,
-    parameters: {
-      modelType: 'logistic_regression',
-      targetVariable: 'treatment_success',
-      features: ['age', 'gender', 'medical_history', 'lab_values']
-    },
-    price: '0.18',
-    status: OrderStatus.EXECUTING,
-    createdAt: Date.now() - 1800000, // 30 minutes ago
-  },
-  {
-    id: '3',
-    datasetId: '3',
-    buyer: '0x8ba1f109551bD432803012645Hac136c1c5e0',
-    queryType: QueryType.COHORT,
-    parameters: {
-      cohortDefinition: 'first_purchase',
-      timePeriod: 'monthly',
-      metric: 'retention_rate'
-    },
-    price: '0.12',
-    status: OrderStatus.PENDING,
-    createdAt: Date.now() - 600000, // 10 minutes ago
-  }
-];
+// ---------------------------------------------------------------------------
+// GET /api/queries
+// Supports query params: datasetId, buyer, status, id, limit, offset
+// ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
   try {
@@ -63,24 +19,41 @@ export async function GET(request: NextRequest) {
     const datasetId = searchParams.get('datasetId');
     const buyer = searchParams.get('buyer');
     const status = searchParams.get('status');
+    const id = searchParams.get('id');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    let filteredOrders = [...mockOrders];
+    // Single-order lookup by id
+    if (id) {
+      const order = getQueryById(id);
+      if (!order) {
+        return NextResponse.json(
+          { success: false, error: 'Query order not found' },
+          { status: 404 },
+        );
+      }
+      return NextResponse.json({ success: true, data: order });
+    }
+
+    let filteredOrders = getQueries();
 
     // Apply filters
     if (datasetId) {
-      filteredOrders = filteredOrders.filter(order => order.datasetId === datasetId);
+      filteredOrders = filteredOrders.filter(
+        (order) => order.datasetId === datasetId,
+      );
     }
 
     if (buyer) {
-      filteredOrders = filteredOrders.filter(order => 
-        order.buyer.toLowerCase() === buyer.toLowerCase()
+      filteredOrders = filteredOrders.filter(
+        (order) => order.buyer.toLowerCase() === buyer.toLowerCase(),
       );
     }
 
     if (status) {
-      filteredOrders = filteredOrders.filter(order => order.status === status);
+      filteredOrders = filteredOrders.filter(
+        (order) => order.status === status,
+      );
     }
 
     // Sort by creation time (newest first)
@@ -97,29 +70,44 @@ export async function GET(request: NextRequest) {
         total,
         limit,
         offset,
-        hasMore: offset + limit < total
-      }
+        hasMore: offset + limit < total,
+      },
     });
   } catch (error) {
     console.error('Error fetching query orders:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch query orders' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
+// ---------------------------------------------------------------------------
+// POST /api/queries
+// Creates a new query order or transitions an existing order's status.
+//
+// Body for new order:  { datasetId, queryType, parameters, buyer, price? }
+// Body for transition: { orderId, action: "execute" | "complete" | "fail" | "refund" }
+// ---------------------------------------------------------------------------
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
+    // ---- Status transition for an existing order --------------------------
+    if (body.orderId && body.action) {
+      return handleStatusTransition(body.orderId, body.action);
+    }
+
+    // ---- Create a new order -----------------------------------------------
+
     // Validate required fields
     const requiredFields = ['datasetId', 'queryType', 'parameters', 'buyer'];
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
           { success: false, error: `Missing required field: ${field}` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -128,81 +116,164 @@ export async function POST(request: NextRequest) {
     if (!Object.values(QueryType).includes(body.queryType)) {
       return NextResponse.json(
         { success: false, error: 'Invalid query type' },
-        { status: 400 }
+        { status: 400 },
+      );
+    }
+
+    // Validate dataset exists
+    const dataset = getDatasetById(body.datasetId);
+    if (!dataset) {
+      return NextResponse.json(
+        { success: false, error: 'Dataset not found' },
+        { status: 404 },
+      );
+    }
+
+    // Check the query type is allowed for this dataset
+    if (!dataset.allowedQueries.includes(body.queryType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Query type "${body.queryType}" is not allowed for this dataset`,
+        },
+        { status: 400 },
       );
     }
 
     // Calculate price based on query type and dataset
-    // In production, this would fetch the dataset and calculate actual price
-    let basePrice = 0.05;
-    switch (body.queryType) {
+    let basePrice = parseFloat(dataset.price);
+    switch (body.queryType as QueryType) {
       case QueryType.AGGREGATION:
-        basePrice = 0.03;
+        // base price * 1
         break;
       case QueryType.ANALYTICS:
-        basePrice = 0.08;
+        basePrice *= 1.6;
         break;
       case QueryType.ML_TRAINING:
-        basePrice = 0.15;
+        basePrice *= 3;
         break;
       case QueryType.COHORT:
-        basePrice = 0.12;
+        basePrice *= 2.4;
+        break;
+      case QueryType.CORRELATION:
+        basePrice *= 2;
         break;
       default:
-        basePrice = 0.10;
+        basePrice *= 2;
     }
 
-    // Create new query order
-    const newOrder: QueryOrder = {
-      id: (mockOrders.length + 1).toString(),
+    const price = body.price || basePrice.toFixed(4);
+
+    // Create new query order via the store
+    const newOrder = addQuery({
       datasetId: body.datasetId,
       buyer: body.buyer,
       queryType: body.queryType,
       parameters: body.parameters,
-      price: body.price || basePrice.toString(),
-      status: OrderStatus.PENDING,
-      createdAt: Date.now()
-    };
+      price,
+    });
 
-    // In production, this would:
-    // 1. Validate the buyer has sufficient funds
-    // 2. Escrow the payment
-    // 3. Submit to the query execution queue
-    // 4. Register with smart contract
-    mockOrders.push(newOrder);
+    // Simulate async execution (pending -> executing -> completed)
+    simulateExecution(newOrder.id);
 
-    // Simulate query execution (in production, this would be handled by workers)
-    setTimeout(() => {
-      const order = mockOrders.find(o => o.id === newOrder.id);
-      if (order) {
-        order.status = OrderStatus.EXECUTING;
-        
-        // Simulate completion after some time
-        setTimeout(() => {
-          order.status = OrderStatus.COMPLETED;
-          order.executedAt = Date.now();
-          order.resultCid = `QmResult${Date.now()}`;
-          order.attestation = {
-            datasetId: order.datasetId,
-            queryHash: `0xquery${Date.now()}`,
-            resultHash: `0xresult${Date.now()}`,
-            workerId: `worker-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`,
-            timestamp: Date.now(),
-            signature: `0xsig${Date.now()}`
-          };
-        }, Math.random() * 60000 + 30000); // 30-90 seconds
-      }
-    }, 5000); // Start execution after 5 seconds
-
-    return NextResponse.json({
-      success: true,
-      data: newOrder
-    }, { status: 201 });
+    return NextResponse.json(
+      { success: true, data: newOrder },
+      { status: 201 },
+    );
   } catch (error) {
     console.error('Error creating query order:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create query order' },
-      { status: 500 }
+      { status: 500 },
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Handle explicit status transitions via POST { orderId, action }. */
+function handleStatusTransition(orderId: string, action: string) {
+  const order = getQueryById(orderId);
+  if (!order) {
+    return NextResponse.json(
+      { success: false, error: 'Query order not found' },
+      { status: 404 },
+    );
+  }
+
+  const transitions: Record<string, { from: OrderStatus[]; to: OrderStatus }> = {
+    execute:  { from: [OrderStatus.PENDING],    to: OrderStatus.EXECUTING },
+    complete: { from: [OrderStatus.EXECUTING],   to: OrderStatus.COMPLETED },
+    fail:     { from: [OrderStatus.PENDING, OrderStatus.EXECUTING], to: OrderStatus.FAILED },
+    refund:   { from: [OrderStatus.FAILED],      to: OrderStatus.REFUNDED },
+  };
+
+  const transition = transitions[action];
+  if (!transition) {
+    return NextResponse.json(
+      { success: false, error: `Unknown action: ${action}` },
+      { status: 400 },
+    );
+  }
+
+  if (!transition.from.includes(order.status)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Cannot ${action} an order with status "${order.status}"`,
+      },
+      { status: 409 },
+    );
+  }
+
+  const extra: Partial<Pick<QueryOrder, 'executedAt' | 'resultCid' | 'attestation'>> = {};
+  if (transition.to === OrderStatus.COMPLETED) {
+    extra.executedAt = Date.now();
+    extra.resultCid = `QmResult${Date.now()}`;
+    extra.attestation = {
+      datasetId: order.datasetId,
+      queryHash: `0xquery${Date.now()}`,
+      resultHash: `0xresult${Date.now()}`,
+      workerId: `worker-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`,
+      timestamp: Date.now(),
+      signature: `0xsig${Date.now()}`,
+    };
+  }
+
+  const updated = updateQueryStatus(orderId, transition.to, extra);
+
+  return NextResponse.json({ success: true, data: updated });
+}
+
+/**
+ * Simulate asynchronous query execution.
+ * Transitions: pending -> executing (after ~5 s) -> completed (after 30-90 s).
+ */
+function simulateExecution(orderId: string) {
+  setTimeout(() => {
+    const order = getQueryById(orderId);
+    if (order && order.status === OrderStatus.PENDING) {
+      updateQueryStatus(orderId, OrderStatus.EXECUTING);
+
+      setTimeout(() => {
+        const current = getQueryById(orderId);
+        if (current && current.status === OrderStatus.EXECUTING) {
+          updateQueryStatus(orderId, OrderStatus.COMPLETED, {
+            executedAt: Date.now(),
+            resultCid: `QmResult${Date.now()}`,
+            attestation: {
+              datasetId: current.datasetId,
+              queryHash: `0xquery${Date.now()}`,
+              resultHash: `0xresult${Date.now()}`,
+              workerId: `worker-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`,
+              timestamp: Date.now(),
+              signature: `0xsig${Date.now()}`,
+            },
+          });
+        }
+      }, Math.random() * 60000 + 30000); // 30-90 seconds
+    }
+  }, 5000); // Start execution after 5 seconds
 }
