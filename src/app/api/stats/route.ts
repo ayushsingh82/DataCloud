@@ -1,56 +1,61 @@
-import { NextResponse } from 'next/server';
-import { OrderStatus } from '@/lib/contracts';
-import { getDatasets, getQueries } from '@/lib/store';
+import { NextRequest, NextResponse } from 'next/server';
+import {
+  getDatasets,
+  getQueries,
+  getDatasetCount,
+  getQueryCount,
+  getVerifiedDatasetCount,
+  getOrderCountByStatus,
+  getTotalVolume,
+  getTotalRevenue,
+  getAveragePrice,
+  getCategoryBreakdown,
+  getActivityLog,
+} from '@/lib/store';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ---------------------------------------------------------------------------
 // GET /api/stats
-// Returns dashboard statistics computed from the in-memory store.
+// Returns dashboard statistics computed from the SQLite store.
 // ---------------------------------------------------------------------------
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(ip);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Limit': '60',
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+
   try {
+    // ---- Aggregate numbers (computed from SQLite) --------------------------
+
+    const totalDatasets = getDatasetCount();
+    const totalQueries = getQueryCount();
+    const verifiedDatasets = getVerifiedDatasetCount();
+    const ordersByStatus = getOrderCountByStatus();
+    const totalVolume = getTotalVolume();
+    const totalRevenue = getTotalRevenue();
+    const averagePrice = getAveragePrice();
+    const categories = getCategoryBreakdown();
+
+    // ---- Recent activity from the activity_log table -----------------------
+
+    const activityRows = getActivityLog(20);
+
+    // Also build a richer activity list by merging datasets and queries data
+    // for backward compatibility with the previous stats format
     const datasets = getDatasets();
     const queries = getQueries();
-
-    // ---- Aggregate numbers -------------------------------------------------
-
-    const totalDatasets = datasets.length;
-    const totalQueries = queries.length;
-    const verifiedDatasets = datasets.filter((d) => d.verified).length;
-
-    // Total volume = sum of completed order prices
-    const completedOrders = queries.filter(
-      (q) => q.status === OrderStatus.COMPLETED,
-    );
-    const totalVolume = completedOrders.reduce(
-      (sum, q) => sum + parseFloat(q.price),
-      0,
-    );
-
-    // Average dataset price
-    const averagePrice =
-      datasets.length > 0
-        ? datasets.reduce((sum, d) => sum + parseFloat(d.price), 0) /
-          datasets.length
-        : 0;
-
-    // Total revenue across all datasets
-    const totalRevenue = datasets.reduce(
-      (sum, d) => sum + parseFloat(d.revenue),
-      0,
-    );
-
-    // Orders by status
-    const ordersByStatus = {
-      pending: queries.filter((q) => q.status === OrderStatus.PENDING).length,
-      executing: queries.filter((q) => q.status === OrderStatus.EXECUTING).length,
-      completed: completedOrders.length,
-      failed: queries.filter((q) => q.status === OrderStatus.FAILED).length,
-      refunded: queries.filter((q) => q.status === OrderStatus.REFUNDED).length,
-    };
-
-    // ---- Recent activity ---------------------------------------------------
-    // Merge datasets and queries into a single timeline, newest first.
 
     interface ActivityItem {
       type: 'dataset_created' | 'query_created' | 'query_completed';
@@ -95,24 +100,6 @@ export async function GET() {
     activity.sort((a, b) => b.timestamp - a.timestamp);
     const recentActivity = activity.slice(0, 20);
 
-    // ---- Category breakdown ------------------------------------------------
-
-    const categoryMap: Record<string, { count: number; totalQueries: number; revenue: number }> = {};
-    for (const d of datasets) {
-      if (!categoryMap[d.category]) {
-        categoryMap[d.category] = { count: 0, totalQueries: 0, revenue: 0 };
-      }
-      categoryMap[d.category].count += 1;
-      categoryMap[d.category].totalQueries += d.totalQueries;
-      categoryMap[d.category].revenue += parseFloat(d.revenue);
-    }
-
-    const categories = Object.entries(categoryMap).map(([name, stats]) => ({
-      name,
-      ...stats,
-      revenue: stats.revenue.toFixed(2),
-    }));
-
     // ---- Response ----------------------------------------------------------
 
     return NextResponse.json({
@@ -127,6 +114,7 @@ export async function GET() {
         ordersByStatus,
         categories,
         recentActivity,
+        activityLog: activityRows,
       },
     });
   } catch (error) {

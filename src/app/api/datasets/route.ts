@@ -1,11 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Dataset, QueryType } from '@/lib/contracts';
+import { QueryType } from '@/lib/contracts';
 import {
   getDatasets,
   getDatasetById,
   addDataset,
   deleteDataset,
 } from '@/lib/store';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
+// ---------------------------------------------------------------------------
+// Rate-limit helper
+// ---------------------------------------------------------------------------
+
+function rateLimitGuard(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(ip);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Limit': '60',
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+  return null; // allowed
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/datasets
@@ -13,6 +37,9 @@ import {
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
+  const blocked = rateLimitGuard(request);
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
@@ -21,6 +48,20 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
+
+    // Validate pagination params
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      return NextResponse.json(
+        { success: false, error: 'limit must be between 1 and 100' },
+        { status: 400 },
+      );
+    }
+    if (isNaN(offset) || offset < 0) {
+      return NextResponse.json(
+        { success: false, error: 'offset must be a non-negative integer' },
+        { status: 400 },
+      );
+    }
 
     // Single-dataset lookup by id
     if (id) {
@@ -88,8 +129,19 @@ export async function GET(request: NextRequest) {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  const blocked = rateLimitGuard(request);
+  if (blocked) return blocked;
+
   try {
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON body' },
+        { status: 400 },
+      );
+    }
 
     // Validate required fields
     const requiredFields = ['title', 'description', 'category', 'price'];
@@ -111,7 +163,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate price is a positive number
-    const priceNum = parseFloat(body.price);
+    const priceNum = parseFloat(body.price as string);
     if (isNaN(priceNum) || priceNum <= 0) {
       return NextResponse.json(
         { success: false, error: 'Price must be a positive number' },
@@ -121,8 +173,14 @@ export async function POST(request: NextRequest) {
 
     // Validate allowedQueries if provided
     if (body.allowedQueries) {
+      if (!Array.isArray(body.allowedQueries)) {
+        return NextResponse.json(
+          { success: false, error: 'allowedQueries must be an array' },
+          { status: 400 },
+        );
+      }
       const validTypes = Object.values(QueryType) as string[];
-      for (const qt of body.allowedQueries) {
+      for (const qt of body.allowedQueries as string[]) {
         if (!validTypes.includes(qt)) {
           return NextResponse.json(
             { success: false, error: `Invalid query type: ${qt}` },
@@ -133,17 +191,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new dataset via the store
-    const newDataset: Dataset = addDataset({
-      cid: body.cid, // optional -- store will generate if missing
-      owner: body.owner || '0x0000000000000000000000000000000000000000',
-      title: body.title.trim(),
-      description: body.description.trim(),
-      category: body.category,
-      schemaHash: body.schemaHash || '0x0000000000000000',
-      size: body.size || 0,
-      price: body.price,
-      allowedQueries: body.allowedQueries || [QueryType.AGGREGATION],
-      pdpParams: body.pdpParams || {
+    const newDataset = addDataset({
+      cid: (body.cid as string) || undefined,
+      owner: (body.owner as string) || '0x0000000000000000000000000000000000000000',
+      title: (body.title as string).trim(),
+      description: (body.description as string).trim(),
+      category: body.category as string,
+      schemaHash: (body.schemaHash as string) || '0x0000000000000000',
+      size: (body.size as number) || 0,
+      price: body.price as string,
+      allowedQueries: (body.allowedQueries as QueryType[]) || [QueryType.AGGREGATION],
+      pdpParams: (body.pdpParams as { challengeInterval: number; proofTimeout: number; slashingAmount: string; requiredProofs: number }) || {
         challengeInterval: 3600,
         proofTimeout: 300,
         slashingAmount: '0.1',
@@ -170,6 +228,9 @@ export async function POST(request: NextRequest) {
 // ---------------------------------------------------------------------------
 
 export async function DELETE(request: NextRequest) {
+  const blocked = rateLimitGuard(request);
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

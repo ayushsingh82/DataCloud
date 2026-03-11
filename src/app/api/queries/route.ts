@@ -7,6 +7,30 @@ import {
   updateQueryStatus,
   getDatasetById,
 } from '@/lib/store';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
+// ---------------------------------------------------------------------------
+// Rate-limit helper
+// ---------------------------------------------------------------------------
+
+function rateLimitGuard(request: NextRequest) {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(ip);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Limit': '60',
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/queries
@@ -14,6 +38,9 @@ import {
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
+  const blocked = rateLimitGuard(request);
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const datasetId = searchParams.get('datasetId');
@@ -22,6 +49,28 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
+
+    // Validate pagination
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      return NextResponse.json(
+        { success: false, error: 'limit must be between 1 and 100' },
+        { status: 400 },
+      );
+    }
+    if (isNaN(offset) || offset < 0) {
+      return NextResponse.json(
+        { success: false, error: 'offset must be a non-negative integer' },
+        { status: 400 },
+      );
+    }
+
+    // Validate status if provided
+    if (status && !Object.values(OrderStatus).includes(status as OrderStatus)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid status: ${status}. Must be one of: ${Object.values(OrderStatus).join(', ')}` },
+        { status: 400 },
+      );
+    }
 
     // Single-order lookup by id
     if (id) {
@@ -91,12 +140,23 @@ export async function GET(request: NextRequest) {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  const blocked = rateLimitGuard(request);
+  if (blocked) return blocked;
+
   try {
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON body' },
+        { status: 400 },
+      );
+    }
 
     // ---- Status transition for an existing order --------------------------
     if (body.orderId && body.action) {
-      return handleStatusTransition(body.orderId, body.action);
+      return handleStatusTransition(body.orderId as string, body.action as string);
     }
 
     // ---- Create a new order -----------------------------------------------
@@ -113,15 +173,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate query type
-    if (!Object.values(QueryType).includes(body.queryType)) {
+    if (!Object.values(QueryType).includes(body.queryType as QueryType)) {
       return NextResponse.json(
-        { success: false, error: 'Invalid query type' },
+        { success: false, error: `Invalid query type: ${body.queryType}. Must be one of: ${Object.values(QueryType).join(', ')}` },
+        { status: 400 },
+      );
+    }
+
+    // Validate parameters is an object
+    if (typeof body.parameters !== 'object' || body.parameters === null || Array.isArray(body.parameters)) {
+      return NextResponse.json(
+        { success: false, error: 'parameters must be an object' },
         { status: 400 },
       );
     }
 
     // Validate dataset exists
-    const dataset = getDatasetById(body.datasetId);
+    const dataset = getDatasetById(body.datasetId as string);
     if (!dataset) {
       return NextResponse.json(
         { success: false, error: 'Dataset not found' },
@@ -130,7 +198,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check the query type is allowed for this dataset
-    if (!dataset.allowedQueries.includes(body.queryType)) {
+    if (!dataset.allowedQueries.includes(body.queryType as QueryType)) {
       return NextResponse.json(
         {
           success: false,
@@ -162,14 +230,14 @@ export async function POST(request: NextRequest) {
         basePrice *= 2;
     }
 
-    const price = body.price || basePrice.toFixed(4);
+    const price = (body.price as string) || basePrice.toFixed(4);
 
     // Create new query order via the store
     const newOrder = addQuery({
-      datasetId: body.datasetId,
-      buyer: body.buyer,
-      queryType: body.queryType,
-      parameters: body.parameters,
+      datasetId: body.datasetId as string,
+      buyer: body.buyer as string,
+      queryType: body.queryType as QueryType,
+      parameters: body.parameters as Record<string, unknown>,
       price,
     });
 
@@ -213,7 +281,7 @@ function handleStatusTransition(orderId: string, action: string) {
   const transition = transitions[action];
   if (!transition) {
     return NextResponse.json(
-      { success: false, error: `Unknown action: ${action}` },
+      { success: false, error: `Unknown action: ${action}. Must be one of: execute, complete, fail, refund` },
       { status: 400 },
     );
   }
@@ -253,27 +321,35 @@ function handleStatusTransition(orderId: string, action: string) {
  */
 function simulateExecution(orderId: string) {
   setTimeout(() => {
-    const order = getQueryById(orderId);
-    if (order && order.status === OrderStatus.PENDING) {
-      updateQueryStatus(orderId, OrderStatus.EXECUTING);
+    try {
+      const order = getQueryById(orderId);
+      if (order && order.status === OrderStatus.PENDING) {
+        updateQueryStatus(orderId, OrderStatus.EXECUTING);
 
-      setTimeout(() => {
-        const current = getQueryById(orderId);
-        if (current && current.status === OrderStatus.EXECUTING) {
-          updateQueryStatus(orderId, OrderStatus.COMPLETED, {
-            executedAt: Date.now(),
-            resultCid: `QmResult${Date.now()}`,
-            attestation: {
-              datasetId: current.datasetId,
-              queryHash: `0xquery${Date.now()}`,
-              resultHash: `0xresult${Date.now()}`,
-              workerId: `worker-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`,
-              timestamp: Date.now(),
-              signature: `0xsig${Date.now()}`,
-            },
-          });
-        }
-      }, Math.random() * 60000 + 30000); // 30-90 seconds
+        setTimeout(() => {
+          try {
+            const current = getQueryById(orderId);
+            if (current && current.status === OrderStatus.EXECUTING) {
+              updateQueryStatus(orderId, OrderStatus.COMPLETED, {
+                executedAt: Date.now(),
+                resultCid: `QmResult${Date.now()}`,
+                attestation: {
+                  datasetId: current.datasetId,
+                  queryHash: `0xquery${Date.now()}`,
+                  resultHash: `0xresult${Date.now()}`,
+                  workerId: `worker-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`,
+                  timestamp: Date.now(),
+                  signature: `0xsig${Date.now()}`,
+                },
+              });
+            }
+          } catch (e) {
+            console.error('Error in simulated execution (completion):', e);
+          }
+        }, Math.random() * 60000 + 30000); // 30-90 seconds
+      }
+    } catch (e) {
+      console.error('Error in simulated execution (start):', e);
     }
   }, 5000); // Start execution after 5 seconds
 }

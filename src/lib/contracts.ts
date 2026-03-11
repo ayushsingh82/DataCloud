@@ -159,14 +159,14 @@ export const CONTRACT_ADDRESSES = {
 
 // Utility functions for contract interactions
 //
-// In demo mode (no real blockchain), the class delegates to the in-memory
+// In demo mode (no real blockchain), the class delegates to the SQLite-backed
 // store so that callers get realistic-looking data without a live contract.
 // We use a lazy-import helper to avoid a circular dependency with store.ts
 // (which imports types from this file).
 export class DataCloudContracts {
   private provider: unknown;
   private signer: unknown;
-  /** When true the class returns data from the in-memory store. */
+  /** When true the class returns data from the SQLite store. */
   private demoMode: boolean;
 
   constructor(provider: unknown, signer?: unknown) {
@@ -209,12 +209,7 @@ export class DataCloudContracts {
   async updateDataset(datasetId: string, updates: Partial<Dataset>): Promise<boolean> {
     if (this.demoMode) {
       const store = await this.store();
-      const existing = store.getDatasetById(datasetId);
-      if (!existing) return false;
-      // Apply shallow updates to the in-memory object. The store holds the
-      // reference so mutations are visible everywhere.
-      Object.assign(existing, updates);
-      return true;
+      return store.updateDataset(datasetId, updates);
     }
     console.log('Updating dataset on-chain:', datasetId, updates);
     return true;
@@ -271,11 +266,7 @@ export class DataCloudContracts {
     if (this.demoMode) {
       // Simulate proof acceptance: update the dataset's lastProofAt timestamp
       const store = await this.store();
-      const dataset = store.getDatasetById(datasetId);
-      if (dataset) {
-        dataset.lastProofAt = Date.now();
-      }
-      return true;
+      return store.updateDataset(datasetId, { lastProofAt: Date.now() });
     }
     console.log('Submitting proof on-chain:', { datasetId, proof, challenge });
     return true;
@@ -330,7 +321,7 @@ export function calculateQueryPrice(basePrice: string, queryType: QueryType, dat
 
   // Factor in dataset size (larger datasets cost more)
   const sizeMultiplier = Math.max(1, datasetSize / (1024 * 1024 * 1024)); // GB
-  
+
   return (base * multiplier * Math.sqrt(sizeMultiplier)).toFixed(4);
 }
 
