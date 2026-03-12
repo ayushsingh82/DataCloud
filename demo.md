@@ -2,7 +2,7 @@
 
 ## What is DataCloud?
 
-DataCloud is a **Privacy-Preserving Data Marketplace** built on Filecoin. Organizations can sell queries on their datasets (not raw data) — buyers pay to run analytics/ML on encrypted datasets via Synapse SDK, and PDP proofs verify the data actually exists.
+DataCloud is a **Privacy-Preserving Data Marketplace** built on Filecoin. Organizations can sell queries on their datasets (not raw data) — buyers pay to run analytics/ML and receive only results; PDP proofs (in design/schema) verify the data actually exists.
 
 **Track:** Infrastructure & Digital Rights
 
@@ -100,9 +100,9 @@ Full API reference, architecture overview, and use cases.
    → Submits query: "AVG spend per age_band in APAC, last 90 days"
    → Pays 0.05 FIL
 
-3. Synapse Worker executes query on encrypted data
+3. Worker executes query; only results returned to buyer
    → Returns: AVG table + confidence intervals
-   → Never sees raw transaction records
+   → Raw transaction records never exposed to buyer
 
 4. Smart contract verifies PDP proof + query compliance
    → Releases payment to Bank A
@@ -145,7 +145,7 @@ Contract ABIs are defined in `src/lib/contracts.ts`. Solidity source files need 
 
 ### What requires external SDK
 
-- **Encrypted compute** — Synapse SDK runs queries on encrypted data without exposing raw records
+- **Query-only results** — Buyers receive only query results (e.g. aggregates, model metrics), not raw records
 - **IPFS file storage** — Lighthouse SDK for actual file uploads to Filecoin/IPFS
 
 ---
@@ -200,9 +200,7 @@ Buyer → Marketplace UI → API (/api/queries) → SQLite (order tracking)
                                                     |
                                             [Future: Smart Contract]
                                                     |
-                                            [Future: Synapse SDK]
-                                                    |
-                                            Encrypted compute on IPFS/Filecoin data
+                                            Query execution (results only to buyer)
                                                     |
                                             Result → Buyer (never raw data)
 ```

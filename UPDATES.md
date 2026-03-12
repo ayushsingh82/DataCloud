@@ -19,7 +19,7 @@ This document outlines all the updates and implementations made to transform the
 ### Technology Stack
 - **Frontend:** Next.js 16 with TypeScript and Tailwind CSS
 - **Storage:** Filecoin + IPFS integration ready
-- **Privacy:** Synapse SDK integration planned
+- **Privacy:** Query-result-only model; PDP/attestation in design/schema
 - **Blockchain:** Smart contract interfaces with ABI definitions; `DataCloudContracts` class supports demo mode (works without a live blockchain)
 
 ## 📁 File Structure Created
@@ -70,7 +70,7 @@ This document outlines all the updates and implementations made to transform the
 ### 1. Landing Page (`/`)
 - **Hero Section** with animated network visualization
 - **Features Overview** with privacy, verification, and decentralization
-- **Technology Stack** highlighting Filecoin, Synapse SDK, and IPFS
+- **Technology Stack** highlighting Filecoin and IPFS
 - **Statistics** showing platform metrics
 - **Call-to-Action** sections for user engagement
 
@@ -134,7 +134,7 @@ This document outlines all the updates and implementations made to transform the
 
 ### Data Protection
 - **Encrypted Storage** with Filecoin integration ready
-- **Privacy-Preserving Queries** using Synapse SDK architecture
+- **Privacy-Preserving Queries** — buyers receive only results, not raw data
 - **PDP Proofs** for data integrity verification
 - **Access Controls** with query template restrictions
 
@@ -251,7 +251,7 @@ This document outlines all the updates and implementations made to transform the
 - **Smart Contract** ABIs and addresses configured
 - **IPFS Integration** endpoints ready
 - **Filecoin Storage** API hooks prepared
-- **Synapse SDK** integration points identified
+- **Compute layer** (query execution) returns only results to buyers
 
 ## 🎯 Future Enhancements Ready
 
@@ -301,7 +301,6 @@ This document outlines all the updates and implementations made to transform the
 - [ ] Wallet integration
 - [ ] Smart contract deployment
 - [ ] IPFS file handling
-- [ ] Synapse SDK integration
 - [ ] Persistent database (in-memory store exists for demo)
 - [ ] Testing and deployment
 

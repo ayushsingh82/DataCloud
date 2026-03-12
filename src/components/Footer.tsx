@@ -26,7 +26,7 @@ export default function Footer() {
               <h3 className="text-xl font-bold text-white group-hover:text-white/70 transition-colors">DataCloud</h3>
             </Link>
             <p className="text-white/70 text-sm">
-              Privacy-preserving decentralized data marketplace powered by Filecoin and Synapse SDK.
+              Privacy-preserving decentralized data marketplace powered by Filecoin.
             </p>
           </div>
 

@@ -285,24 +285,23 @@ export default function BuyersPage() {
         </div>
       </section>
 
-      {/* Query Builder */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
+      {/* Query Builder — white card like marketplace */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-black/10 relative overflow-hidden">
         <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="border border-gray-700 rounded-xl p-8 bg-[#141414] relative overflow-hidden">
-            <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-6 text-white">Query Builder</h2>
-            <p className="text-gray-400 mb-8">
+          <div className="border border-black/20 rounded-xl p-8 bg-white shadow-sm">
+            <h2 className="text-2xl font-bold mb-2 text-black">Query Builder</h2>
+            <p className="text-black/70 mb-8">
               Build and execute privacy-preserving queries on encrypted datasets
             </p>
 
             <div className="space-y-6">
               {/* Step 1: Dataset Selection */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-white">Step 1: Select Dataset</label>
+                <label className="block text-sm font-medium mb-2 text-black">Step 1: Select Dataset</label>
                 {loading ? (
-                  <div className="text-gray-400">Loading datasets...</div>
+                  <div className="text-black/60">Loading datasets...</div>
                 ) : datasets.length === 0 ? (
-                  <div className="text-gray-400">No datasets available. Sellers must upload data first.</div>
+                  <div className="text-black/60">No datasets available. Sellers must upload data first.</div>
                 ) : (
                   <select
                     value={selectedDataset?.id || ''}
@@ -313,7 +312,7 @@ export default function BuyersPage() {
                       setQueryResult(null);
                       setError('');
                     }}
-                    className="w-full border border-gray-700 rounded-lg px-4 py-3 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+                    className="w-full border border-black/20 rounded-lg px-4 py-3 text-black bg-white placeholder-black/50 focus:border-black focus:outline-none"
                   >
                     <option value="">Choose a dataset...</option>
                     {datasets.map(ds => (
@@ -326,15 +325,15 @@ export default function BuyersPage() {
                 )}
 
                 {selectedDataset && (
-                  <div className="mt-3 p-3 border border-gray-700 rounded-lg bg-[#1a1a1a] text-sm text-gray-300">
+                  <div className="mt-3 p-3 border border-black/10 rounded-lg bg-gray-50 text-sm text-black/80">
                     <div><strong>Category:</strong> {selectedDataset.category}</div>
                     <div><strong>Records:</strong> {selectedDataset.records || 0}</div>
                     <div><strong>Base price:</strong> {selectedDataset.price} tFIL</div>
                     {selectedDataset.onChainId && (
-                      <div className="text-green-400 mt-1">On-chain registered (ID: {selectedDataset.onChainId}) — tFIL payment via smart contract</div>
+                      <div className="text-green-700 mt-1">On-chain registered (ID: {selectedDataset.onChainId}) — tFIL payment via smart contract</div>
                     )}
                     {!selectedDataset.onChainId && (
-                      <div className="text-yellow-400 mt-1">Off-chain only — no tFIL deduction</div>
+                      <div className="text-amber-700 mt-1">Off-chain only — no tFIL deduction</div>
                     )}
                   </div>
                 )}
@@ -343,7 +342,7 @@ export default function BuyersPage() {
               {/* Step 2: Query Type */}
               {selectedDataset && (
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-white">Step 2: Query Type</label>
+                  <label className="block text-sm font-medium mb-2 text-black">Step 2: Query Type</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {selectedDataset.allowedQueries.map(qt => (
                       <button
@@ -355,8 +354,8 @@ export default function BuyersPage() {
                         }}
                         className={`px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
                           selectedQueryType === qt
-                            ? 'border-[#EBF73F] bg-[#EBF73F]/10 text-[#EBF73F]'
-                            : 'border-gray-700 text-gray-300 hover:border-gray-500'
+                            ? 'border-black bg-black text-white'
+                            : 'border-black/20 text-black hover:border-black bg-white'
                         }`}
                       >
                         {QUERY_TYPE_LABELS[qt] || qt}
@@ -368,17 +367,17 @@ export default function BuyersPage() {
 
               {/* Step 3: Query Parameters */}
               {selectedQueryType && (
-                <div className="border border-gray-700 rounded-lg p-6 bg-[#1a1a1a]">
-                  <h3 className="font-semibold mb-4 text-white">Step 3: Configure Parameters</h3>
+                <div className="border border-black/10 rounded-lg p-6 bg-gray-50">
+                  <h3 className="font-semibold mb-4 text-black">Step 3: Configure Parameters</h3>
 
                   {selectedQueryType === 'aggregation' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Aggregation Function</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Aggregation Function</label>
                         <select
                           value={aggFunction}
                           onChange={(e) => setAggFunction(e.target.value)}
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
                         >
                           <option value="sum">SUM</option>
                           <option value="avg">AVG</option>
@@ -388,23 +387,23 @@ export default function BuyersPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Column</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Column</label>
                         <input
                           type="text"
                           value={aggColumn}
                           onChange={(e) => setAggColumn(e.target.value)}
                           placeholder="e.g., transaction_amount"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Group By (optional)</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Group By (optional)</label>
                         <input
                           type="text"
                           value={aggGroupBy}
                           onChange={(e) => setAggGroupBy(e.target.value)}
                           placeholder="e.g., age_group, region"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
                         />
                       </div>
                     </div>
@@ -413,11 +412,11 @@ export default function BuyersPage() {
                   {selectedQueryType === 'ml_training' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Model Type</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Model Type</label>
                         <select
                           value={mlModel}
                           onChange={(e) => setMlModel(e.target.value)}
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
                         >
                           <option value="logistic">Logistic Regression</option>
                           <option value="linear">Linear Regression</option>
@@ -426,23 +425,23 @@ export default function BuyersPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Target Variable</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Target Variable</label>
                         <input
                           type="text"
                           value={mlTarget}
                           onChange={(e) => setMlTarget(e.target.value)}
                           placeholder="e.g., is_fraud, customer_value"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Feature Columns</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Feature Columns</label>
                         <textarea
                           rows={3}
                           value={mlFeatures}
                           onChange={(e) => setMlFeatures(e.target.value)}
                           placeholder="e.g., age, income, location, transaction_history"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
                         />
                       </div>
                     </div>
@@ -451,11 +450,11 @@ export default function BuyersPage() {
                   {selectedQueryType === 'cohort' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Cohort Definition</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Cohort Definition</label>
                         <select
                           value={cohortDef}
                           onChange={(e) => setCohortDef(e.target.value)}
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
                         >
                           <option value="signup">Sign-up Date</option>
                           <option value="first-purchase">First Purchase Date</option>
@@ -463,11 +462,11 @@ export default function BuyersPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Time Period</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Time Period</label>
                         <select
                           value={cohortPeriod}
                           onChange={(e) => setCohortPeriod(e.target.value)}
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
                         >
                           <option value="weekly">Weekly</option>
                           <option value="monthly">Monthly</option>
@@ -475,11 +474,11 @@ export default function BuyersPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2 text-gray-300">Metric</label>
+                        <label className="block text-sm font-medium mb-2 text-black/80">Metric</label>
                         <select
                           value={cohortMetric}
                           onChange={(e) => setCohortMetric(e.target.value)}
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
                         >
                           <option value="retention">Retention Rate</option>
                           <option value="revenue">Revenue per Cohort</option>
@@ -490,7 +489,7 @@ export default function BuyersPage() {
                   )}
 
                   {(selectedQueryType === 'correlation' || selectedQueryType === 'analytics') && (
-                    <div className="text-gray-400 text-sm">
+                    <div className="text-black/70 text-sm">
                       This query type runs automatically on all numeric columns in the dataset.
                     </div>
                   )}
@@ -499,18 +498,18 @@ export default function BuyersPage() {
 
               {/* Cost Estimate */}
               {selectedDataset && selectedQueryType && (
-                <div className="border border-gray-700 rounded-lg p-4 bg-[#141414]">
+                <div className="border border-black/10 rounded-lg p-4 bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h4 className="font-semibold text-white">Estimated Cost</h4>
-                      <p className="text-sm text-gray-400">Based on query complexity and dataset pricing</p>
+                      <h4 className="font-semibold text-black">Estimated Cost</h4>
+                      <p className="text-sm text-black/60">Based on query complexity and dataset pricing</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-[#EBF73F]">{estimatedCost} tFIL</div>
+                      <div className="text-2xl font-bold text-black">{estimatedCost} tFIL</div>
                       {selectedDataset.onChainId ? (
-                        <p className="text-xs text-green-400">Paid via smart contract escrow</p>
+                        <p className="text-xs text-green-700">Paid via smart contract escrow</p>
                       ) : (
-                        <p className="text-xs text-yellow-400">Off-chain (no payment required)</p>
+                        <p className="text-xs text-amber-700">Off-chain (no payment required)</p>
                       )}
                     </div>
                   </div>
@@ -519,27 +518,27 @@ export default function BuyersPage() {
 
               {/* Payment progress */}
               {executing && paymentStep && (
-                <div className="border border-[#EBF73F]/30 rounded-lg p-4 bg-[#EBF73F]/5">
+                <div className="border border-[#EBF73F] rounded-lg p-4 bg-[#EBF73F]/10">
                   <div className="flex items-center gap-3">
-                    <div className="animate-spin h-5 w-5 border-2 border-[#EBF73F] border-t-transparent rounded-full" />
-                    <span className="text-[#EBF73F] font-medium">{paymentStep}</span>
+                    <div className="animate-spin h-5 w-5 border-2 border-black/20 border-t-black rounded-full" />
+                    <span className="text-black font-medium">{paymentStep}</span>
                   </div>
                 </div>
               )}
 
               {/* Error */}
               {error && (
-                <div className="border border-red-500/30 rounded-lg p-4 bg-red-500/5">
-                  <p className="text-red-400">{error}</p>
+                <div className="border border-red-300 rounded-lg p-4 bg-red-50">
+                  <p className="text-red-700">{error}</p>
                 </div>
               )}
 
               {/* Query Result */}
               {queryResult && (
-                <div className="border border-green-500/30 rounded-lg p-6 bg-green-500/5">
-                  <h3 className="font-semibold text-green-400 mb-3">Query Result</h3>
-                  <div className="text-sm text-gray-300 space-y-2">
-                    <div><strong>Status:</strong> <span className="text-green-400">{queryResult.status}</span></div>
+                <div className="border border-green-200 rounded-lg p-6 bg-green-50">
+                  <h3 className="font-semibold text-green-800 mb-3">Query Result</h3>
+                  <div className="text-sm text-black/80 space-y-2">
+                    <div><strong>Status:</strong> <span className="text-green-700">{queryResult.status}</span></div>
                     <div><strong>Price:</strong> {queryResult.price} tFIL</div>
                     {queryResult.resultCid && (
                       <div><strong>Result CID:</strong> <span className="font-mono text-xs">{queryResult.resultCid}</span></div>
@@ -547,7 +546,7 @@ export default function BuyersPage() {
                     {queryResult.result && (
                       <div className="mt-3">
                         <strong>Data:</strong>
-                        <pre className="mt-2 p-3 bg-[#141414] rounded-lg overflow-auto max-h-96 text-xs">
+                        <pre className="mt-2 p-3 bg-white border border-black/10 rounded-lg overflow-auto max-h-96 text-xs text-black">
                           {JSON.stringify(queryResult.result, null, 2)}
                         </pre>
                       </div>
@@ -555,7 +554,7 @@ export default function BuyersPage() {
                     {queryResult.attestation && Object.keys(queryResult.attestation).length > 0 && (
                       <div className="mt-3">
                         <strong>Attestation:</strong>
-                        <pre className="mt-2 p-3 bg-[#141414] rounded-lg overflow-auto text-xs">
+                        <pre className="mt-2 p-3 bg-white border border-black/10 rounded-lg overflow-auto text-xs text-black">
                           {JSON.stringify(queryResult.attestation, null, 2)}
                         </pre>
                       </div>
@@ -573,7 +572,7 @@ export default function BuyersPage() {
                     setQueryResult(null);
                     setError('');
                   }}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-black/60 hover:text-black transition-colors"
                 >
                   Reset
                 </button>
@@ -583,8 +582,8 @@ export default function BuyersPage() {
                     disabled={!selectedDataset || !selectedQueryType || executing}
                     className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
                       !selectedDataset || !selectedQueryType || executing
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        : 'bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        : 'bg-black hover:bg-gray-800 text-white'
                     }`}
                   >
                     {executing
@@ -598,46 +597,45 @@ export default function BuyersPage() {
                 </div>
               </div>
             </div>
-            </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-[#C4FEC2]">
         <div className="relative z-10 max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-white">How It Works for Buyers</h2>
-            <p className="text-xl text-gray-400">Get insights without compromising data privacy</p>
+            <h2 className="text-3xl font-bold mb-4 text-black">How It Works for Buyers</h2>
+            <p className="text-xl text-black/80">Get insights without compromising data privacy</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
                 <span className="text-2xl">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-white">Select Dataset</h3>
-              <p className="text-gray-400">
+              <h3 className="text-xl font-semibold mb-4 text-black">Select Dataset</h3>
+              <p className="text-black/80 leading-relaxed">
                 Browse real datasets uploaded by sellers. View metadata, record counts, and pricing before you commit.
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
                 <span className="text-2xl">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-white">Pay with tFIL</h3>
-              <p className="text-gray-400">
+              <h3 className="text-xl font-semibold mb-4 text-black">Pay with tFIL</h3>
+              <p className="text-black/80 leading-relaxed">
                 Your tFIL is escrowed in the QueryMarket smart contract. Funds are released to the dataset owner only after successful computation.
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
                 <span className="text-2xl">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4 text-white">Get Verified Results</h3>
-              <p className="text-gray-400">
+              <h3 className="text-xl font-semibold mb-4 text-black">Get Verified Results</h3>
+              <p className="text-black/80 leading-relaxed">
                 Receive results with cryptographic attestation. Results are stored on IPFS via Lighthouse for permanent verifiability.
               </p>
             </div>
@@ -646,36 +644,36 @@ export default function BuyersPage() {
       </section>
 
       {/* Pricing */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-black/10 bg-[#C4FEC2] relative overflow-hidden">
         <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6 text-white">Transparent Pricing</h2>
-          <p className="text-xl text-gray-400 mb-8">
+          <h2 className="text-3xl font-bold mb-6 text-black">Transparent Pricing</h2>
+          <p className="text-xl text-black/80 mb-8">
             Pay only for successful query execution. tFIL is escrowed and refunded if computation fails.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border border-gray-700 rounded-xl p-6 bg-[#141414]">
-              <h3 className="text-lg font-semibold mb-2 text-white">Simple Queries</h3>
-              <div className="text-3xl font-bold text-[#EBF73F] mb-4">1x base</div>
-              <ul className="text-sm text-gray-400 space-y-2">
+            <div className="border border-black/20 rounded-xl p-6 bg-white shadow-sm">
+              <h3 className="text-lg font-semibold mb-2 text-black">Simple Queries</h3>
+              <div className="text-3xl font-bold text-black mb-4">1x base</div>
+              <ul className="text-sm text-black/70 space-y-2">
                 <li>Statistical aggregations</li>
                 <li>SUM, AVG, COUNT, MIN, MAX</li>
               </ul>
             </div>
 
-            <div className="border border-[#EBF73F] rounded-xl p-6 bg-[#141414]">
-              <h3 className="text-lg font-semibold mb-2 text-white">Analytics</h3>
-              <div className="text-3xl font-bold text-[#EBF73F] mb-4">1.6-2.4x</div>
-              <ul className="text-sm text-gray-400 space-y-2">
+            <div className="border border-black rounded-xl p-6 bg-white shadow-sm">
+              <h3 className="text-lg font-semibold mb-2 text-black">Analytics</h3>
+              <div className="text-3xl font-bold text-black mb-4">1.6-2.4x</div>
+              <ul className="text-sm text-black/70 space-y-2">
                 <li>Cohort & correlation analysis</li>
                 <li>Distribution analytics</li>
               </ul>
             </div>
 
-            <div className="border border-gray-700 rounded-xl p-6 bg-[#141414]">
-              <h3 className="text-lg font-semibold mb-2 text-white">ML Training</h3>
-              <div className="text-3xl font-bold text-[#EBF73F] mb-4">3x base</div>
-              <ul className="text-sm text-gray-400 space-y-2">
+            <div className="border border-black/20 rounded-xl p-6 bg-white shadow-sm">
+              <h3 className="text-lg font-semibold mb-2 text-black">ML Training</h3>
+              <div className="text-3xl font-bold text-black mb-4">3x base</div>
+              <ul className="text-sm text-black/70 space-y-2">
                 <li>Model training</li>
                 <li>Feature engineering</li>
               </ul>

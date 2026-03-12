@@ -107,7 +107,7 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] relative text-black">
+    <div className="min-h-screen w-full bg-[#C4FEC2] relative text-black">
       <div className="relative z-10">
         <Navbar />
 
@@ -180,14 +180,14 @@ export default function MarketplacePage() {
       </section>
 
       {/* Results */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a]">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-black">
               {loading ? 'Loading...' : `${sortedDatasets.length} Dataset${sortedDatasets.length !== 1 ? 's' : ''} Found`}
             </h2>
             {!loading && (
-              <div className="text-sm text-white/50">
+              <div className="text-sm text-black/60">
                 Showing {sortedDatasets.length} dataset{sortedDatasets.length !== 1 ? 's' : ''}
               </div>
             )}
@@ -196,15 +196,15 @@ export default function MarketplacePage() {
           {/* Error State */}
           {error && (
             <div className="text-center py-8">
-              <p className="text-red-400 font-medium">{error}</p>
+              <p className="text-red-600 font-medium">{error}</p>
             </div>
           )}
 
           {/* Loading State */}
           {loading && (
             <div className="text-center py-16">
-              <div className="inline-block w-8 h-8 border-4 border-white/20 border-t-[#C4FEC2] rounded-full animate-spin"></div>
-              <p className="mt-4 text-white/50">Loading datasets...</p>
+              <div className="inline-block w-8 h-8 border-4 border-black/20 border-t-black rounded-full animate-spin"></div>
+              <p className="mt-4 text-black/60">Loading datasets...</p>
             </div>
           )}
 
@@ -220,11 +220,11 @@ export default function MarketplacePage() {
           {/* Empty State */}
           {!loading && !error && sortedDatasets.length === 0 && (
             <div className="text-center py-16">
-              <svg className="w-16 h-16 mx-auto mb-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-16 h-16 mx-auto mb-4 text-black/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <h3 className="text-xl font-semibold mb-2 text-white">No datasets found</h3>
-              <p className="text-white/50 mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-black">No datasets found</h3>
+              <p className="text-black/60 mb-6">
                 Try adjusting your search terms or category filters
               </p>
               <button
@@ -232,7 +232,7 @@ export default function MarketplacePage() {
                   setSearchTerm('');
                   setSelectedCategory('All');
                 }}
-                className="bg-[#C4FEC2] hover:bg-[#b0f0ae] text-black px-6 py-2 rounded-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg font-semibold"
+                className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg font-semibold"
               >
                 Clear Filters
               </button>
@@ -241,10 +241,10 @@ export default function MarketplacePage() {
 
           {/* Playground CTA */}
           {!loading && (
-            <div className="text-center mt-12 pt-8 border-t border-white/10">
+            <div className="text-center mt-12 pt-8 border-t border-black/10">
               <Link
                 href="/playground"
-                className="inline-flex items-center gap-2 text-[#C4FEC2] hover:text-[#b0f0ae] font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-black font-medium hover:text-black/80 transition-colors"
               >
                 Don&apos;t see what you need? Try the Playground
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

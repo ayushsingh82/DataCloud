@@ -175,7 +175,7 @@ export default function SellersPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] relative text-white">
+    <div className="min-h-screen w-full bg-[#C4FEC2] relative text-black">
       <div className="relative z-10">
         <Navbar />
 
@@ -211,36 +211,36 @@ export default function SellersPage() {
         </div>
       </section>
 
-      {/* Publish Dataset Form */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a]">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-[#141414] rounded-2xl p-8 sm:p-10 border border-white/10">
-            <h2 className="text-2xl font-bold mb-2 text-white">Publish a Dataset</h2>
-            <p className="text-white/50 mb-8">Upload a CSV or JSON file, set pricing, and publish to the DataCloud marketplace</p>
+      {/* Publish Dataset Form — white card like marketplace */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-black/10 relative overflow-hidden">
+        <div className="relative z-10 max-w-4xl mx-auto">
+          <div className="border border-black/20 rounded-xl p-8 bg-white shadow-sm">
+            <h2 className="text-2xl font-bold mb-2 text-black">Publish a Dataset</h2>
+            <p className="text-black/70 mb-8">Upload a CSV or JSON file, set pricing, and publish to the DataCloud marketplace</p>
 
             {/* Success Banner */}
             {success && (
-              <div className="mb-8 bg-[#C4FEC2]/10 border border-[#C4FEC2]/30 rounded-xl p-5">
-                <h3 className="font-semibold text-[#C4FEC2] mb-3 flex items-center gap-2">
+              <div className="mb-8 bg-green-50 border border-green-200 rounded-xl p-5">
+                <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   Dataset Published Successfully!
                 </h3>
-                <div className="grid grid-cols-2 gap-2 text-sm text-[#C4FEC2]/80">
-                  <div><span className="font-medium text-[#C4FEC2]">ID:</span> {success.dataset.id}</div>
-                  <div><span className="font-medium text-[#C4FEC2]">Title:</span> {success.dataset.title}</div>
-                  <div><span className="font-medium text-[#C4FEC2]">IPFS CID:</span> <span className="font-mono text-xs">{success.upload.cid}</span></div>
-                  <div><span className="font-medium text-[#C4FEC2]">Price:</span> {success.dataset.price} tFIL/query</div>
-                  <div><span className="font-medium text-[#C4FEC2]">Rows Parsed:</span> {success.upload.rowsParsed.toLocaleString()}</div>
-                  <div><span className="font-medium text-[#C4FEC2]">Columns:</span> {success.upload.columns.length}</div>
+                <div className="grid grid-cols-2 gap-2 text-sm text-green-800">
+                  <div><span className="font-medium">ID:</span> {success.dataset.id}</div>
+                  <div><span className="font-medium">Title:</span> {success.dataset.title}</div>
+                  <div><span className="font-medium">IPFS CID:</span> <span className="font-mono text-xs">{success.upload.cid}</span></div>
+                  <div><span className="font-medium">Price:</span> {success.dataset.price} tFIL/query</div>
+                  <div><span className="font-medium">Rows Parsed:</span> {success.upload.rowsParsed.toLocaleString()}</div>
+                  <div><span className="font-medium">Columns:</span> {success.upload.columns.length}</div>
                 </div>
                 {success.upload.onChain && (
-                  <div className="mt-2 text-xs text-[#C4FEC2]/60">
+                  <div className="mt-2 text-xs text-black/60">
                     Registered on-chain — Tx: <span className="font-mono">{success.upload.txHash?.slice(0, 20)}...</span>
                   </div>
                 )}
-                <div className="mt-2 text-xs text-[#C4FEC2]/60">
+                <div className="mt-2 text-xs text-black/60">
                   Stored on IPFS via Lighthouse — Your data is on Filecoin decentralized storage.
                 </div>
               </div>
@@ -249,18 +249,18 @@ export default function SellersPage() {
             <div className="space-y-8">
               {/* File Upload - Large Drop Zone */}
               <div>
-                <label className="block text-sm font-medium mb-3 text-white/80">Dataset File (CSV or JSON) *</label>
+                <label className="block text-sm font-medium mb-3 text-black">Dataset File (CSV or JSON) *</label>
                 <div
                   onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                   onDragLeave={() => setDragging(false)}
                   onDrop={handleFileDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl py-16 px-8 text-center cursor-pointer transition-all duration-200 ${
+                  className={`border-2 border-dashed rounded-xl py-12 px-6 text-center cursor-pointer transition-all duration-200 ${
                     dragging
-                      ? 'border-[#C4FEC2] bg-[#C4FEC2]/5 scale-[1.01]'
+                      ? 'border-black bg-gray-50 scale-[1.01]'
                       : file
-                        ? 'border-[#C4FEC2]/50 bg-[#C4FEC2]/5'
-                        : 'border-white/20 hover:border-white/40 bg-white/[0.02] hover:bg-white/[0.04]'
+                        ? 'border-green-500 bg-green-50/50'
+                        : 'border-black/20 hover:border-black/40 bg-gray-50 hover:bg-gray-100'
                   }`}
                 >
                   <input
@@ -271,32 +271,32 @@ export default function SellersPage() {
                     className="hidden"
                   />
                   {file ? (
-                    <div className="text-[#C4FEC2]">
-                      <div className="w-16 h-16 rounded-full bg-[#C4FEC2]/10 flex items-center justify-center mx-auto mb-4">
+                    <div className="text-green-800">
+                      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
-                      <p className="font-semibold text-lg">{file.name}</p>
-                      <p className="text-sm text-[#C4FEC2]/70 mt-1">{formatBytes(file.size)}</p>
+                      <p className="font-semibold text-lg text-black">{file.name}</p>
+                      <p className="text-sm text-black/60 mt-1">{formatBytes(file.size)}</p>
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                        className="mt-4 text-sm underline text-white/40 hover:text-white/70 transition-colors"
+                        className="mt-4 text-sm underline text-black/60 hover:text-black transition-colors"
                       >
                         Remove file
                       </button>
                     </div>
                   ) : (
-                    <div className="text-white/40">
-                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                    <div className="text-black/60">
+                      <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                         </svg>
                       </div>
-                      <p className="font-semibold text-lg text-white/60">Drop your CSV or JSON file here</p>
-                      <p className="text-sm mt-2 text-white/30">or click anywhere to browse</p>
-                      <div className="flex justify-center gap-4 mt-4 text-xs text-white/20">
+                      <p className="font-semibold text-lg text-black">Drop your CSV or JSON file here</p>
+                      <p className="text-sm mt-2 text-black/50">or click anywhere to browse</p>
+                      <div className="flex justify-center gap-4 mt-4 text-xs text-black/40">
                         <span>Supports .csv and .json</span>
                         <span>|</span>
                         <span>Max 100MB</span>
@@ -308,69 +308,69 @@ export default function SellersPage() {
 
               {/* Dataset Name */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-white/80">Dataset Name *</label>
+                <label className="block text-sm font-medium mb-2 text-black">Dataset Name *</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Financial Transactions Dataset 2024"
-                  className="w-full border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-white/80">Description *</label>
+                <label className="block text-sm font-medium mb-2 text-black">Description *</label>
                 <textarea
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your dataset, its contents, and potential use cases..."
-                  className="w-full border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
                 />
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-white/80">Category *</label>
+                <label className="block text-sm font-medium mb-2 text-black">Category *</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full border border-white/10 rounded-xl px-4 py-3 text-white bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                  className="w-full border border-black/20 rounded-lg px-4 py-3 text-black bg-white focus:border-black focus:outline-none"
                 >
-                  <option value="" className="bg-[#141414]">Select a category...</option>
-                  <option value="Finance" className="bg-[#141414]">Finance</option>
-                  <option value="Healthcare" className="bg-[#141414]">Healthcare</option>
-                  <option value="E-commerce" className="bg-[#141414]">E-commerce</option>
-                  <option value="Environment" className="bg-[#141414]">Environment</option>
-                  <option value="Social" className="bg-[#141414]">Social Media</option>
-                  <option value="Logistics" className="bg-[#141414]">Logistics</option>
-                  <option value="Technology" className="bg-[#141414]">Technology</option>
+                  <option value="">Select a category...</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="E-commerce">E-commerce</option>
+                  <option value="Environment">Environment</option>
+                  <option value="Social">Social Media</option>
+                  <option value="Logistics">Logistics</option>
+                  <option value="Technology">Technology</option>
                 </select>
               </div>
 
               {/* Allowed Query Types */}
               <div>
-                <label className="block text-sm font-medium mb-3 text-white/80">Allowed Query Types *</label>
+                <label className="block text-sm font-medium mb-3 text-black">Allowed Query Types *</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {QUERY_TYPES.map((qt) => (
                     <label
                       key={qt.value}
-                      className={`flex items-start space-x-3 p-4 border rounded-xl cursor-pointer transition-all duration-200 ${
+                      className={`flex items-start space-x-3 p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
                         allowedQueries.includes(qt.value)
-                          ? 'border-[#C4FEC2]/40 bg-[#C4FEC2]/5'
-                          : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                          ? 'border-black bg-black/5'
+                          : 'border-black/20 hover:border-black/40 bg-white'
                       }`}
                     >
                       <input
                         type="checkbox"
                         checked={allowedQueries.includes(qt.value)}
                         onChange={() => toggleQueryType(qt.value)}
-                        className="mt-1 rounded border-white/30 accent-[#C4FEC2]"
+                        className="mt-1 rounded border-black/30 accent-black"
                       />
                       <div>
-                        <div className="font-medium text-white">{qt.label}</div>
-                        <div className="text-sm text-white/40">{qt.desc}</div>
+                        <div className="font-medium text-black">{qt.label}</div>
+                        <div className="text-sm text-black/60">{qt.desc}</div>
                       </div>
                     </label>
                   ))}
@@ -379,7 +379,7 @@ export default function SellersPage() {
 
               {/* Price */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-white/80">Base Price per Query *</label>
+                <label className="block text-sm font-medium mb-2 text-black">Base Price per Query *</label>
                 <div className="flex">
                   <input
                     type="number"
@@ -387,32 +387,32 @@ export default function SellersPage() {
                     min="0.001"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="flex-1 border border-white/10 rounded-l-xl px-4 py-3 text-white bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                    className="flex-1 border border-black/20 rounded-l-lg px-4 py-3 text-black bg-white focus:border-black focus:outline-none"
                   />
-                  <span className="bg-white/5 border border-white/10 border-l-0 rounded-r-xl px-4 py-3 text-white/50 font-medium">
+                  <span className="bg-gray-100 border border-black/20 border-l-0 rounded-r-lg px-4 py-3 text-black/70 font-medium">
                     tFIL
                   </span>
                 </div>
-                <p className="text-xs text-white/30 mt-1.5">Complex query types (ML, Cohort) will have multiplied pricing</p>
-                <p className="text-xs text-[#C4FEC2]/70 mt-1">
+                <p className="text-xs text-black/60 mt-1.5">Complex query types (ML, Cohort) will have multiplied pricing</p>
+                <p className="text-xs text-black/70 mt-1">
                   ~{estimateEarnings(price)} tFIL/month based on average query volume
                 </p>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4">{error}</div>
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">{error}</div>
               )}
 
               {/* Publish Button */}
-              <div className="flex justify-end pt-6 border-t border-white/10">
+              <div className="flex justify-end pt-6 border-t border-black/10">
                 <button
                   onClick={publishDataset}
                   disabled={submitting}
-                  className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${
+                  className={`px-8 py-3 rounded-lg font-semibold transition-all ${
                     submitting
-                      ? 'bg-white/10 text-white/30 cursor-not-allowed'
-                      : 'bg-[#C4FEC2] hover:bg-[#b0f0ae] text-black hover:transform hover:-translate-y-1 hover:shadow-lg hover:shadow-[#C4FEC2]/20'
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      : 'bg-black hover:bg-gray-800 text-white hover:-translate-y-0.5 hover:shadow-lg'
                   }`}
                 >
                   {submitting ? 'Uploading to IPFS & Publishing...' : 'Publish Dataset'}
@@ -421,34 +421,34 @@ export default function SellersPage() {
             </div>
           </div>
 
-          {/* My Published Datasets */}
-          <div className="mt-8 bg-[#141414] rounded-2xl p-8 sm:p-10 border border-white/10">
-            <h3 className="text-xl font-bold text-white mb-4">Published Datasets</h3>
+          {/* My Published Datasets — white card */}
+          <div className="mt-8 border border-black/20 rounded-xl p-8 bg-white shadow-sm">
+            <h3 className="text-xl font-bold text-black mb-4">Published Datasets</h3>
             {loadingDatasets ? (
-              <p className="text-white/40">Loading...</p>
+              <p className="text-black/60">Loading...</p>
             ) : myDatasets.length === 0 ? (
-              <p className="text-white/40">No datasets published yet. Upload your first CSV or JSON file above!</p>
+              <p className="text-black/60">No datasets published yet. Upload your first CSV or JSON file above!</p>
             ) : (
               <div className="space-y-3">
                 {myDatasets.map((ds) => (
-                  <div key={ds.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                  <div key={ds.id} className="flex items-center justify-between p-4 border border-black/10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-white">{ds.title}</span>
+                        <span className="font-medium text-black">{ds.title}</span>
                         {ds.verified && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-[#C4FEC2]/10 text-[#C4FEC2] border border-[#C4FEC2]/20">Verified</span>
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-800 border border-green-200">Verified</span>
                         )}
                       </div>
-                      <div className="text-sm text-white/40 mt-1">
+                      <div className="text-sm text-black/60 mt-1">
                         {ds.category} &middot; {formatBytes(ds.size)} &middot; {ds.allowedQueries.length} query types &middot; {ds.totalQueries} queries executed
                       </div>
                       {ds.cid && (
-                        <div className="text-xs text-white/20 mt-1 font-mono">CID: {ds.cid}</div>
+                        <div className="text-xs text-black/50 mt-1 font-mono">CID: {ds.cid}</div>
                       )}
                     </div>
                     <div className="text-right ml-4">
-                      <div className="font-bold text-[#C4FEC2]">{ds.price} tFIL</div>
-                      <div className="text-xs text-white/40">per query</div>
+                      <div className="font-bold text-black">{ds.price} tFIL</div>
+                      <div className="text-xs text-black/60">per query</div>
                     </div>
                   </div>
                 ))}
@@ -458,34 +458,34 @@ export default function SellersPage() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#141414]">
+      {/* How It Works — light section like buyers */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-white">How It Works</h2>
-            <p className="text-xl text-white/50">Simple steps to start earning from your datasets</p>
+            <h2 className="text-3xl font-bold mb-4 text-black">How It Works</h2>
+            <p className="text-xl text-black/80">Simple steps to start earning from your datasets</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-8">
-              <div className="w-16 h-16 bg-[#C4FEC2] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-black">1</span>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
+                <span className="text-2xl">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-white">Upload & Publish</h3>
-              <p className="text-white/50">Upload your CSV or JSON file. It gets stored on IPFS via Lighthouse and registered on Filecoin.</p>
+              <h3 className="text-xl font-semibold mb-3 text-black">Upload & Publish</h3>
+              <p className="text-black/80 leading-relaxed">Upload your CSV or JSON file. It gets stored on IPFS via Lighthouse and registered on Filecoin.</p>
             </div>
-            <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-8">
-              <div className="w-16 h-16 bg-[#C4FEC2] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-black">2</span>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
+                <span className="text-2xl">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-white">Buyers Query</h3>
-              <p className="text-white/50">Buyers discover your dataset on the marketplace and run privacy-preserving queries on your data.</p>
+              <h3 className="text-xl font-semibold mb-3 text-black">Buyers Query</h3>
+              <p className="text-black/80 leading-relaxed">Buyers discover your dataset on the marketplace and run privacy-preserving queries on your data.</p>
             </div>
-            <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-8">
-              <div className="w-16 h-16 bg-[#C4FEC2] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-black">3</span>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
+                <span className="text-2xl">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-white">Earn tFIL</h3>
-              <p className="text-white/50">Receive automatic tFIL payments for every query execution. Track revenue in real time.</p>
+              <h3 className="text-xl font-semibold mb-3 text-black">Earn tFIL</h3>
+              <p className="text-black/80 leading-relaxed">Receive automatic tFIL payments for every query execution. Track revenue in real time.</p>
             </div>
           </div>
         </div>

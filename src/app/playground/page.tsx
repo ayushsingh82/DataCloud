@@ -579,13 +579,13 @@ export default function PlaygroundPage() {
       return (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">
+            <label className="block text-sm font-medium mb-2 text-black">
               Aggregation Function
             </label>
             <select
               value={aggFunction}
               onChange={(e) => setAggFunction(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="SUM">SUM</option>
               <option value="AVG">AVG</option>
@@ -595,11 +595,11 @@ export default function PlaygroundPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">Column</label>
+            <label className="block text-sm font-medium mb-2 text-black">Column</label>
             <select
               value={aggColumn}
               onChange={(e) => setAggColumn(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="">Select a column...</option>
               {selectedDataset.columns.map((col) => (
@@ -610,13 +610,13 @@ export default function PlaygroundPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">
+            <label className="block text-sm font-medium mb-2 text-black">
               Group By (optional)
             </label>
             <select
               value={aggGroupBy}
               onChange={(e) => setAggGroupBy(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="">None</option>
               {selectedDataset.columns.map((col) => (
@@ -634,11 +634,11 @@ export default function PlaygroundPage() {
       return (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">Model Type</label>
+            <label className="block text-sm font-medium mb-2 text-black">Model Type</label>
             <select
               value={mlModel}
               onChange={(e) => setMlModel(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="logistic">Logistic Regression</option>
               <option value="linear">Linear Regression</option>
@@ -647,13 +647,13 @@ export default function PlaygroundPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">
+            <label className="block text-sm font-medium mb-2 text-black">
               Target Variable
             </label>
             <select
               value={mlTarget}
               onChange={(e) => setMlTarget(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="">Select target column...</option>
               {selectedDataset.columns.map((col) => (
@@ -664,7 +664,7 @@ export default function PlaygroundPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">
+            <label className="block text-sm font-medium mb-2 text-black">
               Feature Columns (comma-separated)
             </label>
             <textarea
@@ -672,7 +672,7 @@ export default function PlaygroundPage() {
               value={mlFeatures}
               onChange={(e) => setMlFeatures(e.target.value)}
               placeholder="e.g., age, treatment, duration_days"
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
             />
           </div>
         </div>
@@ -683,13 +683,13 @@ export default function PlaygroundPage() {
       return (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">
+            <label className="block text-sm font-medium mb-2 text-black">
               Cohort Definition
             </label>
             <select
               value={cohortDef}
               onChange={(e) => setCohortDef(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="signup">Sign-up Date</option>
               <option value="first-purchase">First Purchase Date</option>
@@ -697,11 +697,11 @@ export default function PlaygroundPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">Time Period</label>
+            <label className="block text-sm font-medium mb-2 text-black">Time Period</label>
             <select
               value={cohortPeriod}
               onChange={(e) => setCohortPeriod(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
@@ -709,11 +709,11 @@ export default function PlaygroundPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">Metric</label>
+            <label className="block text-sm font-medium mb-2 text-black">Metric</label>
             <select
               value={cohortMetric}
               onChange={(e) => setCohortMetric(e.target.value)}
-              className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+              className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
             >
               <option value="retention">Retention Rate</option>
               <option value="revenue">Revenue per Cohort</option>
@@ -726,7 +726,7 @@ export default function PlaygroundPage() {
 
     if (selectedQueryType === 'analytics' || selectedQueryType === 'correlation') {
       return (
-        <div className="text-gray-400 text-sm">
+        <div className="text-black/70 text-sm">
           This query type runs automatically on all numeric columns in the dataset. No additional
           configuration needed.
         </div>
@@ -781,11 +781,11 @@ export default function PlaygroundPage() {
         </section>
 
         {/* ====== MOCK DATASETS SECTION ====== */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a]">
+        <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-black/10 bg-[#C4FEC2]">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4 text-white">Sample Datasets</h2>
-              <p className="text-gray-400 text-lg">
+              <h2 className="text-3xl font-bold mb-4 text-black">Sample Datasets</h2>
+              <p className="text-black/70 text-lg">
                 Select a dataset to begin building your demo query
               </p>
             </div>
@@ -796,33 +796,33 @@ export default function PlaygroundPage() {
                 return (
                   <div
                     key={ds.id}
-                    className={`rounded-xl p-6 transition-all duration-300 cursor-pointer border-2 hover:translate-y-[-2px] ${
+                    className={`rounded-xl p-6 transition-all duration-300 cursor-pointer border-2 hover:translate-y-[-2px] bg-white shadow-sm ${
                       isSelected
-                        ? 'border-[#EBF73F] bg-[#141414] shadow-lg shadow-[#EBF73F]/10'
-                        : 'border-gray-800 bg-[#141414] hover:border-gray-600'
+                        ? 'border-black shadow-lg'
+                        : 'border-black/20 hover:border-black/40'
                     }`}
                     onClick={() => selectDataset(ds.id)}
                   >
                     {/* Category badge + records */}
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#EBF73F]/10 text-[#EBF73F]">
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-black/5 text-black">
                         {ds.category}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-black/60">
                         {ds.records.toLocaleString()} records
                       </span>
                     </div>
 
                     {/* Title + description */}
-                    <h3 className="text-lg font-bold text-white mb-2">{ds.title}</h3>
-                    <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                    <h3 className="text-lg font-bold text-black mb-2">{ds.title}</h3>
+                    <p className="text-black/70 text-sm mb-4 leading-relaxed">
                       {ds.description}
                     </p>
 
                     {/* Price */}
                     <div className="flex items-center gap-1 mb-4">
-                      <span className="text-[#EBF73F] font-bold text-lg">{ds.price}</span>
-                      <span className="text-gray-500 text-sm">tFIL / query</span>
+                      <span className="text-black font-bold text-lg">{ds.price}</span>
+                      <span className="text-black/60 text-sm">tFIL / query</span>
                     </div>
 
                     {/* Column tags */}
@@ -830,7 +830,7 @@ export default function PlaygroundPage() {
                       {ds.columns.map((col) => (
                         <span
                           key={col}
-                          className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-gray-400 font-mono"
+                          className="text-[10px] px-2 py-0.5 rounded bg-gray-100 text-black/70 font-mono"
                         >
                           {col}
                         </span>
@@ -841,8 +841,8 @@ export default function PlaygroundPage() {
                     <button
                       className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
                         isSelected
-                          ? 'bg-[#EBF73F] text-black'
-                          : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                          ? 'bg-black text-white'
+                          : 'bg-gray-100 text-black hover:bg-gray-200'
                       }`}
                     >
                       {isSelected ? 'Selected' : 'Select'}
@@ -856,19 +856,19 @@ export default function PlaygroundPage() {
 
         {/* ====== QUERY BUILDER SECTION ====== */}
         {selectedDataset && (
-          <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#141414] border-t border-gray-800">
+          <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-black/10 bg-[#C4FEC2]">
             <div className="max-w-4xl mx-auto">
-              <div className="border border-gray-700 rounded-xl p-8 bg-[#0a0a0a]">
-                <h2 className="text-2xl font-bold mb-2 text-white">Query Builder</h2>
-                <p className="text-gray-400 mb-8 text-sm">
+              <div className="border border-black/20 rounded-xl p-8 bg-white shadow-sm">
+                <h2 className="text-2xl font-bold mb-2 text-black">Query Builder</h2>
+                <p className="text-black/70 mb-8 text-sm">
                   Configure a privacy-preserving query for{' '}
-                  <span className="text-white font-medium">{selectedDataset.title}</span>
+                  <span className="text-black font-medium">{selectedDataset.title}</span>
                 </p>
 
                 <div className="space-y-6">
                   {/* Query type selection */}
                   <div>
-                    <label className="block text-sm font-medium mb-3 text-white">
+                    <label className="block text-sm font-medium mb-3 text-black">
                       Query Type
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -878,8 +878,8 @@ export default function PlaygroundPage() {
                           onClick={() => selectQueryType(qt)}
                           className={`px-4 py-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
                             selectedQueryType === qt
-                              ? 'border-[#EBF73F] bg-[#EBF73F]/10 text-[#EBF73F]'
-                              : 'border-gray-700 text-gray-300 hover:border-gray-500'
+                              ? 'border-black bg-black text-white'
+                              : 'border-black/20 text-black hover:border-black bg-white'
                           }`}
                         >
                           {QUERY_TYPE_LABELS[qt] || qt}
@@ -890,8 +890,8 @@ export default function PlaygroundPage() {
 
                   {/* Parameter form */}
                   {selectedQueryType && (
-                    <div className="border border-gray-700 rounded-lg p-6 bg-[#141414]">
-                      <h3 className="font-semibold mb-4 text-white">Parameters</h3>
+                    <div className="border border-black/10 rounded-lg p-6 bg-gray-50">
+                      <h3 className="font-semibold mb-4 text-black">Parameters</h3>
                       {renderParameterForm()}
                     </div>
                   )}
@@ -901,7 +901,7 @@ export default function PlaygroundPage() {
                     <div className="flex items-center justify-between">
                       <button
                         onClick={reset}
-                        className="text-gray-400 hover:text-white transition-colors text-sm"
+                        className="text-black/60 hover:text-black transition-colors text-sm"
                       >
                         Reset All
                       </button>
@@ -910,8 +910,8 @@ export default function PlaygroundPage() {
                         disabled={isRunning}
                         className={`px-8 py-3 rounded-lg font-semibold transition-all duration-200 ${
                           isRunning
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            : 'bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black hover:shadow-lg hover:shadow-[#EBF73F]/20'
+                            ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                            : 'bg-black hover:bg-gray-800 text-white hover:shadow-lg'
                         }`}
                       >
                         {isRunning ? 'Running...' : 'Run Demo Query'}
@@ -926,76 +926,78 @@ export default function PlaygroundPage() {
 
         {/* ====== SIMULATION PROGRESS ====== */}
         {(isRunning || completedSteps.length > 0) && (
-          <section className="py-12 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a] border-t border-gray-800">
+          <section className="py-12 px-4 sm:px-6 lg:px-8 border-t border-black/10 bg-[#C4FEC2]">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-xl font-bold mb-6 text-white">Execution Pipeline</h2>
-              <div className="space-y-4">
-                {SIMULATION_STEPS.map((step, idx) => {
-                  const isDone = completedSteps.includes(idx);
-                  const isActive = activeStep === idx;
-                  const isPending = !isDone && !isActive;
+              <div className="border border-black/20 rounded-xl p-8 bg-white shadow-sm">
+                <h2 className="text-xl font-bold mb-6 text-black">Execution Pipeline</h2>
+                <div className="space-y-4">
+                  {SIMULATION_STEPS.map((step, idx) => {
+                    const isDone = completedSteps.includes(idx);
+                    const isActive = activeStep === idx;
+                    const isPending = !isDone && !isActive;
 
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex items-center gap-4 p-4 rounded-lg border transition-all duration-500 ${
-                        isDone
-                          ? 'border-green-500/30 bg-green-500/5'
-                          : isActive
-                            ? 'border-[#EBF73F]/40 bg-[#EBF73F]/5'
-                            : 'border-gray-800 bg-[#141414] opacity-40'
-                      }`}
-                    >
-                      {/* Status icon */}
-                      <div className="flex-shrink-0">
-                        {isDone ? (
-                          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg
-                              className="w-5 h-5 text-white"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          </div>
-                        ) : isActive ? (
-                          <div className="w-8 h-8 rounded-full border-2 border-[#EBF73F] border-t-transparent animate-spin" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center">
-                            <span className="text-gray-500 text-xs font-bold">{idx + 1}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Label */}
-                      <span
-                        className={`text-sm font-medium ${
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-center gap-4 p-4 rounded-lg border transition-all duration-500 ${
                           isDone
-                            ? 'text-green-400'
+                            ? 'border-green-300 bg-green-50'
                             : isActive
-                              ? 'text-[#EBF73F]'
-                              : 'text-gray-500'
+                              ? 'border-black/30 bg-black/5'
+                              : 'border-black/10 bg-gray-50 opacity-60'
                         }`}
                       >
-                        {step.label}
-                      </span>
+                        {/* Status icon */}
+                        <div className="flex-shrink-0">
+                          {isDone ? (
+                            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                              <svg
+                                className="w-5 h-5 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                          ) : isActive ? (
+                            <div className="w-8 h-8 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full border-2 border-black/20 flex items-center justify-center">
+                              <span className="text-black/50 text-xs font-bold">{idx + 1}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      {/* Timing (shown when done) */}
-                      {isDone && (
-                        <span className="text-xs text-gray-500 ml-auto">
-                          {(step.duration / 1000).toFixed(1)}s
+                        {/* Label */}
+                        <span
+                          className={`text-sm font-medium ${
+                            isDone
+                              ? 'text-green-800'
+                              : isActive
+                                ? 'text-black'
+                                : 'text-black/50'
+                          }`}
+                        >
+                          {step.label}
                         </span>
-                      )}
-                      {isPending && <span className="text-xs text-gray-600 ml-auto">pending</span>}
-                    </div>
-                  );
-                })}
+
+                        {/* Timing (shown when done) */}
+                        {isDone && (
+                          <span className="text-xs text-black/50 ml-auto">
+                            {(step.duration / 1000).toFixed(1)}s
+                          </span>
+                        )}
+                        {isPending && <span className="text-xs text-black/40 ml-auto">pending</span>}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </section>
@@ -1003,18 +1005,18 @@ export default function PlaygroundPage() {
 
         {/* ====== MOCK RESULTS ====== */}
         {results && (
-          <section className="py-12 px-4 sm:px-6 lg:px-8 bg-[#141414] border-t border-gray-800">
+          <section className="py-12 px-4 sm:px-6 lg:px-8 border-t border-black/10 bg-[#C4FEC2]">
             <div className="max-w-4xl mx-auto">
-              <div className="border border-green-500/30 rounded-xl overflow-hidden">
+              <div className="border border-green-300 rounded-xl overflow-hidden bg-white shadow-sm">
                 {/* Result header */}
-                <div className="bg-green-500/10 border-b border-green-500/20 px-6 py-4 flex items-center justify-between">
+                <div className="bg-green-50 border-b border-green-200 px-6 py-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                    <h2 className="text-lg font-bold text-green-400">
+                    <h2 className="text-lg font-bold text-green-800">
                       Query Completed Successfully
                     </h2>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-black/60">
                     {results.executionTime as string}
                   </span>
                 </div>
@@ -1022,27 +1024,27 @@ export default function PlaygroundPage() {
                 <div className="p-6 space-y-6">
                   {/* Metadata grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-[#0a0a0a] rounded-lg p-4">
-                      <div className="text-xs text-gray-500 mb-1">Result Hash</div>
-                      <div className="text-xs font-mono text-gray-300 break-all">
+                    <div className="bg-gray-50 border border-black/10 rounded-lg p-4">
+                      <div className="text-xs text-black/60 mb-1">Result Hash</div>
+                      <div className="text-xs font-mono text-black break-all">
                         {results.resultHash as string}
                       </div>
                     </div>
-                    <div className="bg-[#0a0a0a] rounded-lg p-4">
-                      <div className="text-xs text-gray-500 mb-1">IPFS CID</div>
-                      <div className="text-xs font-mono text-gray-300 break-all">
+                    <div className="bg-gray-50 border border-black/10 rounded-lg p-4">
+                      <div className="text-xs text-black/60 mb-1">IPFS CID</div>
+                      <div className="text-xs font-mono text-black break-all">
                         {results.ipfsCid as string}
                       </div>
                     </div>
-                    <div className="bg-[#0a0a0a] rounded-lg p-4">
-                      <div className="text-xs text-gray-500 mb-1">On-chain Tx</div>
-                      <div className="text-xs font-mono text-gray-300 break-all">
+                    <div className="bg-gray-50 border border-black/10 rounded-lg p-4">
+                      <div className="text-xs text-black/60 mb-1">On-chain Tx</div>
+                      <div className="text-xs font-mono text-black break-all">
                         {results.onChainTx as string}
                       </div>
                     </div>
-                    <div className="bg-[#0a0a0a] rounded-lg p-4">
-                      <div className="text-xs text-gray-500 mb-1">Execution Time</div>
-                      <div className="text-sm font-mono text-[#EBF73F]">
+                    <div className="bg-gray-50 border border-black/10 rounded-lg p-4">
+                      <div className="text-xs text-black/60 mb-1">Execution Time</div>
+                      <div className="text-sm font-mono text-black font-semibold">
                         {results.executionTime as string}
                       </div>
                     </div>
@@ -1050,10 +1052,10 @@ export default function PlaygroundPage() {
 
                   {/* Attestation */}
                   {results.attestation && (
-                    <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                    <div className="bg-gray-50 border border-black/10 rounded-lg p-4">
+                      <h3 className="text-sm font-semibold text-black mb-3 flex items-center gap-2">
                         <svg
-                          className="w-4 h-4 text-green-400"
+                          className="w-4 h-4 text-green-600"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1072,12 +1074,12 @@ export default function PlaygroundPage() {
                           results.attestation as Record<string, any>,
                         ).map(([key, val]) => (
                           <div key={key}>
-                            <div className="text-gray-500 mb-0.5">{key}</div>
+                            <div className="text-black/60 mb-0.5">{key}</div>
                             <div
                               className={`font-mono ${
                                 val === true
-                                  ? 'text-green-400'
-                                  : 'text-gray-300'
+                                  ? 'text-green-700'
+                                  : 'text-black'
                               }`}
                             >
                               {String(val)}
@@ -1090,23 +1092,23 @@ export default function PlaygroundPage() {
 
                   {/* Query + Data */}
                   {results.query && (
-                    <div className="text-sm text-gray-400">
-                      <span className="text-gray-500">Query: </span>
-                      <span className="text-white font-medium">
+                    <div className="text-sm text-black/70">
+                      <span className="text-black/60">Query: </span>
+                      <span className="text-black font-medium">
                         {results.query as string}
                       </span>
                     </div>
                   )}
 
                   {results.data && (
-                    <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg overflow-hidden">
-                      <div className="border-b border-gray-800 px-4 py-2 flex items-center gap-2">
+                    <div className="bg-gray-50 border border-black/10 rounded-lg overflow-hidden">
+                      <div className="border-b border-black/10 px-4 py-2 flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-red-500" />
                         <div className="w-2 h-2 rounded-full bg-yellow-500" />
                         <div className="w-2 h-2 rounded-full bg-green-500" />
-                        <span className="text-xs text-gray-500 ml-2">result.json</span>
+                        <span className="text-xs text-black/50 ml-2">result.json</span>
                       </div>
-                      <pre className="p-4 text-xs text-gray-300 overflow-auto max-h-96 font-mono leading-relaxed">
+                      <pre className="p-4 text-xs text-black overflow-auto max-h-96 font-mono leading-relaxed">
                         {JSON.stringify(results.data, null, 2)}
                       </pre>
                     </div>

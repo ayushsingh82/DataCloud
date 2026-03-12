@@ -1,35 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-
-/* -------------------------------------------------------------------------- */
-/*  Stats hook                                                                 */
-/* -------------------------------------------------------------------------- */
-
-interface Stats {
-  totalDatasets: number;
-  totalQueries: number;
-  totalVolume: string;
-  categories: Record<string, number>;
-}
-
-function useStats() {
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  useEffect(() => {
-    fetch('/api/stats')
-      .then((r) => r.json())
-      .then((json) => {
-        if (json.success) setStats(json.data);
-      })
-      .catch(() => {});
-  }, []);
-
-  return stats;
-}
 
 /* -------------------------------------------------------------------------- */
 /*  Network visualisation (kept from original, simplified)                     */
@@ -90,54 +63,45 @@ function NetworkViz() {
 /* -------------------------------------------------------------------------- */
 
 export default function Home() {
-  const stats = useStats();
-  const categoryCount = stats?.categories ? Object.keys(stats.categories).length : 0;
-
   return (
     <div className="min-h-screen w-full relative text-black">
       <Navbar />
 
       {/* ------------------------------------------------------------------ */}
-      {/*  1. Hero                                                            */}
+      {/*  1. Hero — compact so How It Works appears on first scroll           */}
       {/* ------------------------------------------------------------------ */}
-      <section className="bg-[#C4FEC2] pt-28 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Text */}
+      <section className="bg-[#C4FEC2] min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8 pt-20 pb-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center w-full">
           <div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-5">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-3">
               The Decentralized
               <br />
               Data Marketplace
             </h1>
-            <p className="text-lg sm:text-xl text-black/70 mb-8 max-w-xl">
+            <p className="text-base sm:text-lg text-black/70 mb-5 max-w-xl">
               Buy and sell data insights on Filecoin. Privacy-preserving queries,
               cryptographic proofs, tFIL payments.
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-10">
+            <div className="flex flex-col sm:flex-row gap-2.5 mb-4">
               <Link
                 href="/marketplace"
-                className="bg-black text-white text-center px-7 py-3.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                className="bg-black text-white text-center px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
               >
                 Explore Marketplace
               </Link>
               <Link
                 href="/playground"
-                className="bg-white text-black text-center border border-black/30 px-7 py-3.5 rounded-lg font-semibold transition-all hover:border-black"
+                className="bg-white text-black text-center border border-black/30 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all hover:border-black"
               >
                 Try Playground
               </Link>
             </div>
-
-            {/* Trust badges */}
-            <div className="flex flex-wrap gap-3 text-xs font-medium text-black/60">
-              <span className="bg-white/70 px-3 py-1.5 rounded-full">Built on Filecoin</span>
-              <span className="bg-white/70 px-3 py-1.5 rounded-full">IPFS Storage</span>
-              <span className="bg-white/70 px-3 py-1.5 rounded-full">Smart Contract Escrow</span>
+            <div className="flex flex-wrap gap-2 text-xs font-medium text-black/60">
+              <span className="bg-white/70 px-2 py-1 rounded-full">Built on Filecoin</span>
+              <span className="bg-white/70 px-2 py-1 rounded-full">IPFS Storage</span>
+              <span className="bg-white/70 px-2 py-1 rounded-full">Smart Contract Escrow</span>
             </div>
           </div>
-
-          {/* Viz */}
           <div className="flex justify-center lg:justify-end">
             <NetworkViz />
           </div>
@@ -147,9 +111,9 @@ export default function Home() {
       {/* ------------------------------------------------------------------ */}
       {/*  2. How It Works                                                    */}
       {/* ------------------------------------------------------------------ */}
-      <section className="bg-[#0a0a0a] py-20 px-4 sm:px-6 lg:px-8">
+      <section className="bg-[#0a0a0a] py-16 px-4 sm:px-6 lg:px-8" id="how-it-works">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-14">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-10">
             How It Works
           </h2>
 
@@ -200,97 +164,68 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------------ */}
-      {/*  3. Live Stats                                                      */}
+      {/*  3. Stats + Use Cases + Get Started — one combined section           */}
       {/* ------------------------------------------------------------------ */}
-      <section className="bg-[#C4FEC2] py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
-            Platform Stats
-          </h2>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold">{stats?.totalDatasets ?? '---'}</div>
-              <p className="text-black/60 text-sm mt-1">Total Datasets</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold">{stats?.totalQueries ?? '---'}</div>
-              <p className="text-black/60 text-sm mt-1">Total Queries</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold">
-                {stats?.totalVolume ?? '---'}
+      <section className="bg-[#C4FEC2] py-14 px-4 sm:px-6 lg:px-8 border-t border-black/10">
+        <div className="max-w-6xl mx-auto">
+          {/* Use Cases */}
+          <div className="mb-12">
+            <h2 className="text-xl font-bold text-black/80 text-center mb-6 uppercase tracking-wide">
+              Use Cases
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl p-8 min-h-[180px] shadow-sm border border-black/10 flex flex-col justify-center">
+                <h3 className="text-lg font-bold text-black mb-3">Financial Analytics</h3>
+                <p className="text-black/70 text-base leading-relaxed">
+                  Run fraud detection models on transaction data without exposing PII.
+                </p>
               </div>
-              <p className="text-black/60 text-sm mt-1">Volume (tFIL)</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl sm:text-5xl font-bold">{categoryCount || '---'}</div>
-              <p className="text-black/60 text-sm mt-1">Categories</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  4. Featured Use Cases                                              */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="bg-[#0a0a0a] py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white text-center mb-14">
-            Use Cases
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-[#141414] border border-white/10 rounded-xl p-8">
-              <h3 className="text-lg font-bold text-white mb-3">Financial Analytics</h3>
-              <p className="text-white/60 text-sm leading-relaxed">
-                Run fraud detection models on transaction data without exposing PII.
-              </p>
-            </div>
-            <div className="bg-[#141414] border border-white/10 rounded-xl p-8">
-              <h3 className="text-lg font-bold text-white mb-3">Healthcare Research</h3>
-              <p className="text-white/60 text-sm leading-relaxed">
-                Train ML models on clinical data while preserving patient privacy.
-              </p>
-            </div>
-            <div className="bg-[#141414] border border-white/10 rounded-xl p-8">
-              <h3 className="text-lg font-bold text-white mb-3">Market Intelligence</h3>
-              <p className="text-white/60 text-sm leading-relaxed">
-                Analyze consumer behavior across datasets from multiple providers.
-              </p>
+              <div className="bg-white rounded-xl p-8 min-h-[180px] shadow-sm border border-black/10 flex flex-col justify-center">
+                <h3 className="text-lg font-bold text-black mb-3">Healthcare Research</h3>
+                <p className="text-black/70 text-base leading-relaxed">
+                  Train ML models on clinical data while preserving patient privacy.
+                </p>
+              </div>
+              <div className="bg-white rounded-xl p-8 min-h-[180px] shadow-sm border border-black/10 flex flex-col justify-center">
+                <h3 className="text-lg font-bold text-black mb-3">Market Intelligence</h3>
+                <p className="text-black/70 text-base leading-relaxed">
+                  Analyze consumer behavior across datasets from multiple providers.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ------------------------------------------------------------------ */}
-      {/*  5. CTA                                                             */}
-      {/* ------------------------------------------------------------------ */}
-      <section className="bg-[#C4FEC2] py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-10">
-            Start building with DataCloud
-          </h2>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/sellers"
-              className="bg-black text-white px-7 py-3.5 rounded-lg font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              I want to sell data
-            </Link>
-            <Link
-              href="/buyers"
-              className="bg-white text-black border border-black/30 px-7 py-3.5 rounded-lg font-semibold transition-all hover:border-black"
-            >
-              I want to buy insights
-            </Link>
-            <Link
-              href="/playground"
-              className="bg-white text-black border border-black/30 px-7 py-3.5 rounded-lg font-semibold transition-all hover:border-black"
-            >
-              Try the playground first
-            </Link>
+          {/* Start building + 3 CTAs */}
+          <div>
+            <h2 className="text-xl font-bold text-black text-center mb-6">
+              Start building with DataCloud
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Link
+                href="/sellers"
+                className="group flex flex-col items-center text-center bg-white border-2 border-black/20 rounded-xl p-5 font-semibold text-black transition-all hover:border-black hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <span className="text-2xl mb-2" aria-hidden>📤</span>
+                <span className="text-sm sm:text-base">I want to sell data</span>
+                <span className="text-xs font-normal text-black/60 mt-1">Upload datasets, get paid in tFIL</span>
+              </Link>
+              <Link
+                href="/buyers"
+                className="group flex flex-col items-center text-center bg-white border-2 border-black/20 rounded-xl p-5 font-semibold text-black transition-all hover:border-black hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <span className="text-2xl mb-2" aria-hidden>🔍</span>
+                <span className="text-sm sm:text-base">I want to buy insights</span>
+                <span className="text-xs font-normal text-black/60 mt-1">Run queries, get results only</span>
+              </Link>
+              <Link
+                href="/playground"
+                className="group flex flex-col items-center text-center bg-black text-white border-2 border-black rounded-xl p-5 font-semibold transition-all hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5"
+              >
+                <span className="text-2xl mb-2" aria-hidden>🧪</span>
+                <span className="text-sm sm:text-base">Try the playground first</span>
+                <span className="text-xs font-normal text-white/80 mt-1">Explore without a wallet</span>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

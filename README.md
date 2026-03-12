@@ -2,7 +2,9 @@
 
 **DataCompute Protocol — Decentralized Data Marketplace with Privacy-Preserving Queries**
 
-A Filecoin-native marketplace where organizations sell privacy-preserving queries (not raw data). Buyers pay to run analytics/ML on encrypted datasets via Synapse SDK; PDP proofs attest the data really exists and is stored as claimed.
+A Filecoin-native marketplace where organizations sell privacy-preserving queries (not raw data). Buyers pay to run analytics/ML and receive only results; PDP proofs (in design/schema) attest that data exists and is stored as claimed.
+
+**Privacy-preserving:** Buyers only get query results, not raw data. PDP/attestation are in the design/schema; the current implementation does not use full encrypted computation—the server computes on data and returns only the result to the buyer.
 
 ## 🎯 What It Does
 
@@ -22,7 +24,7 @@ A Filecoin-native marketplace where organizations sell privacy-preserving querie
 ### Problems Solved
 - **Data leakage & compliance** – Organizations can monetize without sharing raw PII/IP, reducing breach risk and easing GDPR/DPDP compliance
 - **Fake/under-provisioned datasets** – PDP proofs provide cryptographic evidence that the advertised dataset actually exists and is stored intact
-- **MEV & leakage during computation** – Using Synapse SDK's encrypted/secure compute prevents data/parameters from leaking during processing
+- **Leakage during computation** – Buyers receive only query results (aggregates, model metrics), not raw records; computation runs server-side
 - **Misaligned incentives** – On-chain settlement + slashing for failed proofs aligns sellers to keep data available and accurate
 - **Fragmented discovery** – A unified marketplace with schema/quality metadata and query catalogs
 
@@ -35,7 +37,7 @@ A Filecoin-native marketplace where organizations sell privacy-preserving querie
 
 ### Off-chain (Storage & Compute)
 - **Storage Layer** - Filecoin deals for durable storage; IPFS CIDs for referencing blocks/chunks
-- **Compute Layer** (Synapse SDK) - Encrypted Compute Worker executes allowed query templates on encrypted data
+- **Compute Layer** - Workers execute allowed query templates; only results are returned to buyers
 - **Broker/Coordinator** - Matches QueryOrders to Workers, fetches encrypted shards from IPFS/Filecoin gateways
 
 ## 🔄 Data/Query Flow
@@ -43,13 +45,13 @@ A Filecoin-native marketplace where organizations sell privacy-preserving querie
 1. **Seller Onboarding** - Encrypt dataset, upload to Filecoin, pin CID on IPFS, register with smart contract
 2. **PDP Setup** - Run PDP Prover, respond to periodic challenges, post proof receipts
 3. **Buyer Order** - Select dataset + query template, sign parameters, pay to QueryMarket
-4. **Encrypted Compute** - Broker assigns order to Synapse Worker, executes query securely
+4. **Query execution** - Broker/worker executes query; only result returned to buyer
 5. **Settlement** - Contract verifies dataset health and query compliance, releases payment
 6. **Delivery** - Buyer downloads result via API/UI
 
 ## 🛡️ Trust & Security Model
 
-- **Data secrecy**: Guaranteed by Synapse SDK's encrypted/secure compute model
+- **Data secrecy**: Buyers receive only query results (no raw data); PDP/attestation in design/schema
 - **Data availability**: Enforced via PDP proofs; missed proofs downgrade health
 - **Computation integrity**: Worker attestations + query template hashing
 - **Payments**: Escrowed on-chain; release only on valid attestation
@@ -59,7 +61,7 @@ A Filecoin-native marketplace where organizations sell privacy-preserving querie
 ## 🛠️ Tech Stack
 
 - **Storage**: Filecoin + IPFS (CIDs)
-- **Privacy Compute**: Synapse SDK (encrypted/secure queries/ML)
+- **Privacy**: Query-result-only (aggregates, ML metrics); no raw data to buyers
 - **Proofs**: PDP prover/receipt (MVP: simplified PoR-style, then full PDP)
 - **On-chain**: Solidity, Foundry/Hardhat; Ethers; optional Filecoin EVM
 - **Frontend / API**: Next.js 16 (App Router) + Wagmi + RainbowKit
@@ -112,7 +114,7 @@ bun dev
 
 1. **Bank A** registers an anonymized transactions dataset; sets price 0.05 FIL/query; enabled queries: cohort stats & fraud score model
 2. **FinTech B** buys a query: "AVG spend per age_band in APAC, last 90 days"
-3. **Worker** executes via Synapse SDK → returns AVG table + confidence intervals
+3. **Worker** executes query → returns AVG table + confidence intervals (result only)
 4. **Contract** verifies PDP freshness + policy; releases payment; FinTech downloads results
 
 ## 🤝 Contributing
@@ -127,5 +129,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built on [Filecoin](https://filecoin.io) for decentralized storage
-- Powered by [Synapse SDK](https://synapse.ai) for privacy-preserving compute
 - Inspired by the need for privacy-first data marketplaces

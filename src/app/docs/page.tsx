@@ -21,37 +21,37 @@ export default function DocsPage() {
       {/* Documentation Content */}
       <section className="py-8 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white border border-transparent rounded-xl p-8 shadow-lg">
+          <div className="bg-black border border-white/10 rounded-xl p-8 shadow-lg text-gray-100">
             
             {/* Table of Contents */}
             <div className="mb-12">
-              <h2 className="text-2xl font-bold mb-6">Table of Contents</h2>
+              <h2 className="text-2xl font-bold mb-6 text-white">Table of Contents</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <a href="#overview" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#overview" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     1. Overview
                   </a>
-                  <a href="#architecture" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#architecture" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     2. Architecture
                   </a>
-                  <a href="#getting-started" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#getting-started" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     3. Getting Started
                   </a>
-                  <a href="#data-sellers" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#data-sellers" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     4. For Data Sellers
                   </a>
                 </div>
                 <div className="space-y-2">
-                  <a href="#data-buyers" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#data-buyers" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     5. For Data Buyers
                   </a>
-                  <a href="#api-reference" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#api-reference" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     6. API Reference
                   </a>
-                  <a href="#smart-contracts" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#smart-contracts" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     7. Smart Contracts
                   </a>
-                  <a href="#examples" className="block text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="#examples" className="block text-sky-400 hover:text-sky-300 transition-colors">
                     8. Examples
                   </a>
                 </div>
@@ -60,11 +60,11 @@ export default function DocsPage() {
 
             {/* Overview Section */}
             <div id="overview" className="mb-12">
-              <h2 className="text-3xl font-bold mb-6">1. Overview</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white">1. Overview</h2>
               <div className="prose prose-invert max-w-none">
-                <p className="text-gray-300 mb-4">
+                <p className="text-gray-300 mb-4 leading-relaxed">
                   DataCloud is a decentralized data marketplace that enables privacy-preserving queries on encrypted datasets. 
-                  Built on Filecoin and powered by Synapse SDK, it allows organizations to monetize their data without 
+                  Built on Filecoin, it allows organizations to monetize their data without 
                   exposing sensitive information.
                 </p>
                 
@@ -79,20 +79,20 @@ export default function DocsPage() {
 
                 <h3 className="text-xl font-semibold mb-4 text-white">Use Cases</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">Financial Services</h4>
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
+                    <h4 className="font-semibold mb-2 text-white">Financial Services</h4>
                     <p className="text-sm text-gray-300">Risk assessment, fraud detection, credit scoring</p>
                   </div>
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">Healthcare</h4>
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
+                    <h4 className="font-semibold mb-2 text-white">Healthcare</h4>
                     <p className="text-sm text-gray-300">Drug discovery, treatment analysis, epidemiology</p>
                   </div>
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">Marketing</h4>
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
+                    <h4 className="font-semibold mb-2 text-white">Marketing</h4>
                     <p className="text-sm text-gray-300">Consumer insights, demand forecasting, segmentation</p>
                   </div>
-                  <div className="bg-gray-800 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2">Research</h4>
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
+                    <h4 className="font-semibold mb-2 text-white">Research</h4>
                     <p className="text-sm text-gray-300">Academic studies, policy analysis, social science</p>
                   </div>
                 </div>
@@ -101,12 +101,12 @@ export default function DocsPage() {
 
             {/* Architecture Section */}
             <div id="architecture" className="mb-12">
-              <h2 className="text-3xl font-bold mb-6">2. Architecture</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white">2. Architecture</h2>
               <div className="prose prose-invert max-w-none">
                 <h3 className="text-xl font-semibold mb-4 text-white">System Components</h3>
                 
-                <div className="bg-gray-800 p-6 rounded-lg mb-6">
-                  <h4 className="text-lg font-semibold mb-3">On-Chain Components</h4>
+                <div className="bg-[#141414] p-6 rounded-lg mb-6 border border-white/10">
+                  <h4 className="text-lg font-semibold mb-3 text-white">On-Chain Components</h4>
                   <ul className="list-disc list-inside text-gray-300 space-y-2">
                     <li><strong>DatasetRegistry:</strong> Tracks dataset metadata, ownership, and pricing</li>
                     <li><strong>QueryMarket:</strong> Handles escrow, orders, and payment settlement</li>
@@ -114,11 +114,11 @@ export default function DocsPage() {
                   </ul>
                 </div>
 
-                <div className="bg-gray-800 p-6 rounded-lg mb-6">
-                  <h4 className="text-lg font-semibold mb-3">Off-Chain Components</h4>
+                <div className="bg-[#141414] p-6 rounded-lg mb-6 border border-white/10">
+                  <h4 className="text-lg font-semibold mb-3 text-white">Off-Chain Components</h4>
                   <ul className="list-disc list-inside text-gray-300 space-y-2">
                     <li><strong>Storage Layer:</strong> Filecoin for durable storage, IPFS for content addressing</li>
-                    <li><strong>Compute Layer:</strong> Synapse SDK workers for encrypted query execution</li>
+                    <li><strong>Compute Layer:</strong> Workers execute allowed query templates on dataset data</li>
                     <li><strong>Broker Service:</strong> Matches orders to workers and manages execution</li>
                   </ul>
                 </div>
@@ -129,7 +129,7 @@ export default function DocsPage() {
                   <li><strong>Register:</strong> Dataset metadata registered on-chain with query templates</li>
                   <li><strong>Discover:</strong> Buyers browse datasets and select queries</li>
                   <li><strong>Order:</strong> Payment escrowed, query order created</li>
-                  <li><strong>Execute:</strong> Encrypted computation performed by Synapse workers</li>
+                  <li><strong>Execute:</strong> Query executed; only results returned to buyer</li>
                   <li><strong>Verify:</strong> Results verified with cryptographic attestation</li>
                   <li><strong>Settle:</strong> Payment released to data owner</li>
                 </ol>
@@ -138,7 +138,7 @@ export default function DocsPage() {
 
             {/* Getting Started Section */}
             <div id="getting-started" className="mb-12">
-              <h2 className="text-3xl font-bold mb-6">3. Getting Started</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white">3. Getting Started</h2>
               <div className="prose prose-invert max-w-none">
                 <h3 className="text-xl font-semibold mb-4 text-white">Prerequisites</h3>
                 <ul className="list-disc list-inside text-gray-300 space-y-2 mb-6">
@@ -148,8 +148,8 @@ export default function DocsPage() {
                 </ul>
 
                 <h3 className="text-xl font-semibold mb-4 text-white">Quick Start</h3>
-                <div className="bg-gray-900 p-4 rounded-lg mb-6">
-                  <pre className="text-green-400 text-sm overflow-x-auto">
+                <div className="bg-[#141414] p-4 rounded-lg mb-6 border border-white/10">
+                  <pre className="text-emerald-400 text-base overflow-x-auto font-mono leading-relaxed">
 {`# Install DataCloud CLI
 npm install -g @datacloud/cli
 
@@ -165,15 +165,15 @@ datacloud wallet balance`}
 
             {/* API Reference Section */}
             <div id="api-reference" className="mb-12">
-              <h2 className="text-3xl font-bold mb-6">6. API Reference</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white">6. API Reference</h2>
               <div className="prose prose-invert max-w-none">
                 <h3 className="text-xl font-semibold mb-4 text-white">REST API Endpoints</h3>
                 
                 <div className="space-y-6">
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
                     <div className="flex items-center mb-2">
-                      <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-mono mr-2">GET</span>
-                      <code className="text-blue-400">/api/datasets</code>
+                      <span className="bg-emerald-600 text-white px-2 py-1 rounded text-xs font-mono mr-2">GET</span>
+                      <code className="text-sky-400 font-mono text-sm">/api/datasets</code>
                     </div>
                     <p className="text-gray-300 text-sm mb-2">Fetch available datasets with filtering options</p>
                     <div className="text-xs text-gray-400">
@@ -181,10 +181,10 @@ datacloud wallet balance`}
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
                     <div className="flex items-center mb-2">
                       <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-mono mr-2">POST</span>
-                      <code className="text-blue-400">/api/datasets</code>
+                      <code className="text-sky-400 font-mono text-sm">/api/datasets</code>
                     </div>
                     <p className="text-gray-300 text-sm mb-2">Register a new dataset</p>
                     <div className="text-xs text-gray-400">
@@ -192,10 +192,10 @@ datacloud wallet balance`}
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
                     <div className="flex items-center mb-2">
-                      <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-mono mr-2">GET</span>
-                      <code className="text-blue-400">/api/queries</code>
+                      <span className="bg-emerald-600 text-white px-2 py-1 rounded text-xs font-mono mr-2">GET</span>
+                      <code className="text-sky-400 font-mono text-sm">/api/queries</code>
                     </div>
                     <p className="text-gray-300 text-sm mb-2">Fetch query orders and their status</p>
                     <div className="text-xs text-gray-400">
@@ -203,10 +203,10 @@ datacloud wallet balance`}
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="bg-[#141414] p-4 rounded-lg border border-white/10">
                     <div className="flex items-center mb-2">
                       <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-mono mr-2">POST</span>
-                      <code className="text-blue-400">/api/queries</code>
+                      <code className="text-sky-400 font-mono text-sm">/api/queries</code>
                     </div>
                     <p className="text-gray-300 text-sm mb-2">Create a new query order</p>
                     <div className="text-xs text-gray-400">
@@ -219,11 +219,11 @@ datacloud wallet balance`}
 
             {/* Examples Section */}
             <div id="examples" className="mb-12">
-              <h2 className="text-3xl font-bold mb-6">8. Examples</h2>
+              <h2 className="text-3xl font-bold mb-6 text-white">8. Examples</h2>
               <div className="prose prose-invert max-w-none">
                 <h3 className="text-xl font-semibold mb-4 text-white">JavaScript SDK Usage</h3>
-                <div className="bg-gray-900 p-4 rounded-lg mb-6">
-                  <pre className="text-green-400 text-sm overflow-x-auto">
+                <div className="bg-[#141414] p-4 rounded-lg mb-6 border border-white/10">
+                  <pre className="text-emerald-400 text-base overflow-x-auto font-mono leading-relaxed">
 {`import { DataCloudSDK } from '@datacloud/sdk';
 
 // Initialize SDK
@@ -256,8 +256,8 @@ const result = await datacloud.queries.execute({
                 </div>
 
                 <h3 className="text-xl font-semibold mb-4 text-white">Python SDK Usage</h3>
-                <div className="bg-gray-900 p-4 rounded-lg mb-6">
-                  <pre className="text-green-400 text-sm overflow-x-auto">
+                <div className="bg-[#141414] p-4 rounded-lg mb-6 border border-white/10">
+                  <pre className="text-emerald-400 text-base overflow-x-auto font-mono leading-relaxed">
 {`from datacloud import DataCloudClient
 
 # Initialize client
