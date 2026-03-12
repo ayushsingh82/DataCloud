@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-black border-t border-transparent py-12 relative overflow-hidden">
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2.5 mb-4 group">
@@ -40,8 +40,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/datasets" className="text-white/70 hover:text-white transition-colors">
-                  Browse Datasets
+                <Link href="/playground" className="text-white/70 hover:text-white transition-colors">
+                  Playground
                 </Link>
               </li>
               <li>
@@ -50,8 +50,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-white/70 hover:text-white transition-colors">
-                  Pricing
+                <Link href="/buyers" className="text-white/70 hover:text-white transition-colors">
+                  Buy Data
                 </Link>
               </li>
             </ul>
@@ -67,46 +67,14 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/api" className="text-white/70 hover:text-white transition-colors">
-                  API Reference
+                <Link href="/docs" className="text-white/70 hover:text-white transition-colors">
+                  API Docs
                 </Link>
               </li>
               <li>
-                <Link href="/tutorials" className="text-white/70 hover:text-white transition-colors">
-                  Tutorials
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="text-white/70 hover:text-white transition-colors">
-                  Blog
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Connect */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Connect</h4>
-            <ul className="space-y-2 text-sm">
-              <li>
-                <a href="https://twitter.com/datacloud" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
-                  Twitter
-                </a>
-              </li>
-              <li>
-                <a href="https://discord.gg/datacloud" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
-                  Discord
-                </a>
-              </li>
-              <li>
-                <a href="https://github.com/datacloud" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
+                <a href="#" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
                   GitHub
                 </a>
-              </li>
-              <li>
-                <Link href="/contact" className="text-white/70 hover:text-white transition-colors">
-                  Contact
-                </Link>
               </li>
             </ul>
           </div>

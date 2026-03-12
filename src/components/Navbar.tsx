@@ -40,14 +40,17 @@ export default function Navbar() {
             <Link href="/marketplace" className="text-black hover:text-black/70 transition-colors nav-link">
               Marketplace
             </Link>
-            <Link href="/datasets" className="text-black hover:text-black/70 transition-colors nav-link">
-              Datasets
+            <Link href="/playground" className="text-black hover:text-black/70 transition-colors nav-link">
+              Playground
             </Link>
             <Link href="/sellers" className="text-black hover:text-black/70 transition-colors nav-link">
-              For Sellers
+              Sell Data
             </Link>
             <Link href="/buyers" className="text-black hover:text-black/70 transition-colors nav-link">
-              For Buyers
+              Buy Data
+            </Link>
+            <Link href="/docs" className="text-black hover:text-black/70 transition-colors nav-link">
+              Docs
             </Link>
           </nav>
 
@@ -74,14 +77,17 @@ export default function Navbar() {
               <Link href="/marketplace" className="text-black hover:text-black/70 transition-colors nav-link">
                 Marketplace
               </Link>
-              <Link href="/datasets" className="text-black hover:text-black/70 transition-colors nav-link">
-                Datasets
+              <Link href="/playground" className="text-black hover:text-black/70 transition-colors nav-link">
+                Playground
               </Link>
               <Link href="/sellers" className="text-black hover:text-black/70 transition-colors nav-link">
-                For Sellers
+                Sell Data
               </Link>
               <Link href="/buyers" className="text-black hover:text-black/70 transition-colors nav-link">
-                For Buyers
+                Buy Data
+              </Link>
+              <Link href="/docs" className="text-black hover:text-black/70 transition-colors nav-link">
+                Docs
               </Link>
               <div className="pt-4 border-t border-black/10">
                 <ConnectButton />

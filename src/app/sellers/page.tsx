@@ -1,360 +1,491 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useAccount } from 'wagmi';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+interface ApiDataset {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: string;
+  size: number;
+  verified: boolean;
+  totalQueries: number;
+  totalRevenue: string;
+  allowedQueries: string[];
+  cid: string;
+  createdAt: number;
+}
+
+interface UploadResult {
+  cid: string;
+  lighthouse: boolean;
+  onChain: boolean;
+  txHash?: string;
+  onChainId?: string;
+  rowsParsed: number;
+  columns: string[];
+}
+
+const QUERY_TYPES = [
+  { value: 'aggregation', label: 'Statistical Aggregation', desc: 'SUM, AVG, COUNT, etc.' },
+  { value: 'ml_training', label: 'ML Model Training', desc: 'Model training and inference' },
+  { value: 'analytics', label: 'Analytics', desc: 'Comprehensive data analysis' },
+  { value: 'cohort', label: 'Cohort Analysis', desc: 'User behavior over time' },
+  { value: 'correlation', label: 'Correlation Analysis', desc: 'Variable relationships' },
+];
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function estimateEarnings(priceStr: string): string {
+  const price = parseFloat(priceStr);
+  if (isNaN(price) || price <= 0) return '0';
+  // Assume average ~120 queries/month for a listed dataset
+  const monthly = price * 120;
+  return monthly.toFixed(2);
+}
+
 export default function SellersPage() {
-  const [activeTab, setActiveTab] = useState('upload');
+  const { address, isConnected } = useAccount();
+  // Form state
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [price, setPrice] = useState('0.05');
+  const [allowedQueries, setAllowedQueries] = useState<string[]>(['aggregation']);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Submission state
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState<{ dataset: ApiDataset; upload: UploadResult } | null>(null);
+  const [error, setError] = useState('');
+
+  // Existing datasets
+  const [myDatasets, setMyDatasets] = useState<ApiDataset[]>([]);
+  const [loadingDatasets, setLoadingDatasets] = useState(true);
+
+  // Drag and drop state
+  const [dragging, setDragging] = useState(false);
+
+  // Fetch existing datasets
+  useEffect(() => {
+    fetch('/api/datasets?limit=100')
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) setMyDatasets(json.data);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingDatasets(false));
+  }, [success]);
+
+  function toggleQueryType(qt: string) {
+    setAllowedQueries((prev) =>
+      prev.includes(qt) ? prev.filter((q) => q !== qt) : [...prev, qt]
+    );
+  }
+
+  function handleFileDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      const name = droppedFile.name.toLowerCase();
+      if (name.endsWith('.csv') || name.endsWith('.json')) {
+        setFile(droppedFile);
+        setError('');
+      } else {
+        setError('Only CSV and JSON files are supported.');
+      }
+    }
+  }
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setError('');
+    }
+  }
+
+  async function publishDataset() {
+    if (!isConnected || !address) {
+      setError('Please connect your wallet first using the Connect button in the navigation bar.');
+      return;
+    }
+    if (!file) {
+      setError('Please upload a dataset file (CSV or JSON).');
+      return;
+    }
+    if (!title.trim() || !description.trim() || !category || !price) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    if (allowedQueries.length === 0) {
+      setError('Select at least one query type.');
+      return;
+    }
+
+    setError('');
+    setSubmitting(true);
+    setSuccess(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('title', title.trim());
+      formData.append('description', description.trim());
+      formData.append('category', category);
+      formData.append('price', price);
+      formData.append('owner', address);
+      formData.append('allowedQueries', JSON.stringify(allowedQueries));
+
+      const res = await fetch('/api/datasets', {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSuccess({ dataset: json.data, upload: json.upload });
+        // Reset form
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setPrice('0.05');
+        setAllowedQueries(['aggregation']);
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      } else {
+        setError(json.error || 'Failed to publish dataset');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <div className="min-h-screen w-full bg-[#C4FEC2] relative text-black">
+    <div className="min-h-screen w-full bg-[#0a0a0a] relative text-white">
       <div className="relative z-10">
         <Navbar />
-      
+
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-6 text-black">
-            Monetize Your Data <span className="text-black">Securely</span>
+            Monetize Your Data Securely
           </h1>
-          <p className="text-xl text-black/70 mb-8 max-w-3xl mx-auto">
-            Upload your datasets to Filecoin, set privacy-preserving query templates, and earn revenue without exposing raw data.
+          <p className="text-xl text-black/70 mb-4 max-w-3xl mx-auto">
+            Upload your datasets to Filecoin via IPFS, set privacy-preserving query templates, and earn tFIL without exposing raw data.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg">
-              Start Selling Data
-            </button>
-            <button className="border border-black/30 text-black hover:border-black hover:bg-white/50 bg-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300">
-              View Documentation
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Process Steps */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-black relative overflow-hidden">
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-white">How to Sell Your Data</h2>
-            <p className="text-xl text-white/70">Simple steps to start earning from your datasets</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-black">Upload & Encrypt</h3>
-              <p className="text-black/70 mb-6">
-                Upload your dataset to Filecoin with automatic encryption. Your data is stored securely and remains private.
-              </p>
-              <div className="border border-transparent rounded-lg p-4 bg-[#C4FEC2] relative overflow-hidden">
-                <div className="relative z-10">
-                <h4 className="font-semibold mb-2 text-black">Features:</h4>
-                <ul className="text-sm text-black/70 space-y-1">
-                  <li>• End-to-end encryption</li>
-                  <li>• Filecoin storage integration</li>
-                  <li>• IPFS content addressing</li>
-                  <li>• Automatic backup & replication</li>
-                </ul>
-                </div>
-              </div>
+          <div className="flex justify-center gap-6 mt-8">
+            <div className="flex items-center gap-2 text-black/60 text-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              IPFS + Filecoin storage
             </div>
-
-            {/* Step 2 */}
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">2</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-black">Define Query Templates</h3>
-              <p className="text-black/70 mb-6">
-                Set up allowed computations, pricing models, and access controls. Choose from pre-built templates or create custom ones.
-              </p>
-              <div className="border border-transparent rounded-lg p-4 bg-[#C4FEC2] relative overflow-hidden">
-                <div className="relative z-10">
-                <h4 className="font-semibold mb-2 text-black">Query Types:</h4>
-                <ul className="text-sm text-black/70 space-y-1">
-                  <li>• Statistical aggregations</li>
-                  <li>• Machine learning training</li>
-                  <li>• Cohort analysis</li>
-                  <li>• Custom analytics</li>
-                </ul>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 text-black/60 text-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Privacy-preserving queries
             </div>
-
-            {/* Step 3 */}
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">3</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-4 text-black">Earn Revenue</h3>
-              <p className="text-black/70 mb-6">
-                Start earning FIL tokens for each query execution. Automated payments with transparent pricing and usage analytics.
-              </p>
-              <div className="border border-transparent rounded-lg p-4 bg-[#C4FEC2] relative overflow-hidden">
-                <div className="relative z-10">
-                <h4 className="font-semibold mb-2 text-black">Benefits:</h4>
-                <ul className="text-sm text-black/70 space-y-1">
-                  <li>• Per-query payments</li>
-                  <li>• Transparent pricing</li>
-                  <li>• Usage analytics</li>
-                  <li>• Automatic settlements</li>
-                </ul>
-                </div>
-              </div>
+            <div className="flex items-center gap-2 text-black/60 text-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Automatic tFIL payments
             </div>
           </div>
         </div>
       </section>
 
-      {/* Data Upload Interface */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2] relative overflow-hidden">
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="border border-transparent rounded-xl p-8 bg-white relative overflow-hidden shadow-lg">
-            <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-6 text-black">Upload Your Dataset</h2>
-            
-            {/* Tabs */}
-            <div className="flex space-x-4 mb-8">
-              <button
-                onClick={() => setActiveTab('upload')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors border ${
-                  activeTab === 'upload'
-                    ? 'bg-[#EBF73F] text-black border-gray-700'
-                    : 'border-gray-700 text-gray-400 hover:text-white bg-[#141414]'
-                }`}
-              >
-                Upload Data
-              </button>
-              <button
-                onClick={() => setActiveTab('configure')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors border ${
-                  activeTab === 'configure'
-                    ? 'bg-[#EBF73F] text-black border-gray-700'
-                    : 'border-gray-700 text-gray-400 hover:text-white bg-[#141414]'
-                }`}
-              >
-                Configure Queries
-              </button>
-              <button
-                onClick={() => setActiveTab('pricing')}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors border ${
-                  activeTab === 'pricing'
-                    ? 'bg-[#EBF73F] text-black border-gray-700'
-                    : 'border-gray-700 text-gray-400 hover:text-white bg-[#141414]'
-                }`}
-              >
-                Set Pricing
-              </button>
-            </div>
+      {/* Publish Dataset Form */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-[#141414] rounded-2xl p-8 sm:p-10 border border-white/10">
+            <h2 className="text-2xl font-bold mb-2 text-white">Publish a Dataset</h2>
+            <p className="text-white/50 mb-8">Upload a CSV or JSON file, set pricing, and publish to the DataCloud marketplace</p>
 
-            {/* Upload Tab */}
-            {activeTab === 'upload' && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Dataset Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter a descriptive name for your dataset"
-                    className="w-full border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
-                  <textarea
-                    rows={4}
-                    placeholder="Describe your dataset, its contents, and potential use cases"
-                    className="w-full border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category</label>
-                  <select className="w-full bg-[#141414] border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-[#EBF73F] focus:outline-none">
-                    <option value="">Select a category</option>
-                    <option value="finance">Finance</option>
-                    <option value="healthcare">Healthcare</option>
-                    <option value="ecommerce">E-commerce</option>
-                    <option value="environment">Environment</option>
-                    <option value="social">Social Media</option>
-                    <option value="logistics">Logistics</option>
-                  </select>
-                </div>
-
-                <div className="border-2 border-dashed border-black/20 rounded-lg p-8 text-center hover:border-black transition-colors cursor-pointer bg-white relative overflow-hidden">
-                  <div className="relative z-10">
-                  <svg className="w-12 h-12 mx-auto mb-4 text-black/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            {/* Success Banner */}
+            {success && (
+              <div className="mb-8 bg-[#C4FEC2]/10 border border-[#C4FEC2]/30 rounded-xl p-5">
+                <h3 className="font-semibold text-[#C4FEC2] mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <h3 className="text-lg font-semibold mb-2 text-black">Drop your files here</h3>
-                  <p className="text-black/70 mb-4">or click to browse</p>
-                  <button className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg font-semibold">
-                    Choose Files
-                  </button>
-                  <p className="text-xs text-black/50 mt-2">
-                    Supports CSV, JSON, Parquet files up to 10GB
-                  </p>
+                  Dataset Published Successfully!
+                </h3>
+                <div className="grid grid-cols-2 gap-2 text-sm text-[#C4FEC2]/80">
+                  <div><span className="font-medium text-[#C4FEC2]">ID:</span> {success.dataset.id}</div>
+                  <div><span className="font-medium text-[#C4FEC2]">Title:</span> {success.dataset.title}</div>
+                  <div><span className="font-medium text-[#C4FEC2]">IPFS CID:</span> <span className="font-mono text-xs">{success.upload.cid}</span></div>
+                  <div><span className="font-medium text-[#C4FEC2]">Price:</span> {success.dataset.price} tFIL/query</div>
+                  <div><span className="font-medium text-[#C4FEC2]">Rows Parsed:</span> {success.upload.rowsParsed.toLocaleString()}</div>
+                  <div><span className="font-medium text-[#C4FEC2]">Columns:</span> {success.upload.columns.length}</div>
+                </div>
+                {success.upload.onChain && (
+                  <div className="mt-2 text-xs text-[#C4FEC2]/60">
+                    Registered on-chain — Tx: <span className="font-mono">{success.upload.txHash?.slice(0, 20)}...</span>
                   </div>
+                )}
+                <div className="mt-2 text-xs text-[#C4FEC2]/60">
+                  Stored on IPFS via Lighthouse — Your data is on Filecoin decentralized storage.
                 </div>
               </div>
             )}
 
-            {/* Configure Tab */}
-            {activeTab === 'configure' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Allowed Query Types</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      { name: 'Statistical Aggregations', desc: 'SUM, AVG, COUNT, etc.' },
-                      { name: 'Machine Learning', desc: 'Model training and inference' },
-                      { name: 'Cohort Analysis', desc: 'User behavior over time' },
-                      { name: 'Correlation Analysis', desc: 'Variable relationships' }
-                    ].map((query, index) => (
-                      <label key={index} className="flex items-start space-x-3 p-4 border border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 transition-opacity bg-[#141414] relative overflow-hidden">
-                        <div className="relative z-10 flex items-start space-x-3 w-full">
-                          <input type="checkbox" className="mt-1 text-[#EBF73F] border-gray-700 rounded focus:ring-[#EBF73F] bg-[#141414]" />
-                        <div>
-                          <div className="font-medium">{query.name}</div>
-                            <div className="text-sm text-gray-400">{query.desc}</div>
-                          </div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Data Privacy Level</label>
-                  <select className="w-full bg-[#141414] border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-[#EBF73F] focus:outline-none">
-                    <option value="high">High - Maximum privacy protection</option>
-                    <option value="medium">Medium - Balanced privacy and utility</option>
-                    <option value="low">Low - Minimal privacy constraints</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {/* Pricing Tab */}
-            {activeTab === 'pricing' && (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Base Price per Query</label>
-                  <div className="flex">
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.05"
-                      className="flex-1 bg-[#141414] border border-gray-700 rounded-l-lg px-4 py-3 text-white placeholder-gray-400 focus:border-[#EBF73F] focus:outline-none"
-                    />
-                    <span className="bg-gray-700 border border-gray-700 border-l-0 rounded-r-lg px-4 py-3 text-gray-300">
-                      FIL
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Query Type Multipliers</h3>
-                  <div className="space-y-3">
-                    {[
-                      { name: 'Simple Aggregations', multiplier: '1x' },
-                      { name: 'Complex Analytics', multiplier: '3x' },
-                      { name: 'ML Model Training', multiplier: '5x' },
-                      { name: 'Custom Queries', multiplier: '10x' }
-                    ].map((item, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 border border-gray-700 rounded-lg bg-[#141414] relative overflow-hidden">
-                        <div className="relative z-10 flex justify-between items-center w-full">
-                        <span>{item.name}</span>
-                          <span className="text-[#EBF73F] font-semibold">{item.multiplier}</span>
-                        </div>
+            <div className="space-y-8">
+              {/* File Upload - Large Drop Zone */}
+              <div>
+                <label className="block text-sm font-medium mb-3 text-white/80">Dataset File (CSV or JSON) *</label>
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleFileDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl py-16 px-8 text-center cursor-pointer transition-all duration-200 ${
+                    dragging
+                      ? 'border-[#C4FEC2] bg-[#C4FEC2]/5 scale-[1.01]'
+                      : file
+                        ? 'border-[#C4FEC2]/50 bg-[#C4FEC2]/5'
+                        : 'border-white/20 hover:border-white/40 bg-white/[0.02] hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".csv,.json"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  {file ? (
+                    <div className="text-[#C4FEC2]">
+                      <div className="w-16 h-16 rounded-full bg-[#C4FEC2]/10 flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="border border-gray-700 rounded-lg p-4 bg-[#141414] relative overflow-hidden">
-                  <div className="relative z-10">
-                  <h4 className="font-semibold mb-2 text-white">Revenue Estimate</h4>
-                  <p className="text-sm text-gray-400 mb-2">
-                    Based on similar datasets in your category:
-                  </p>
-                  <div className="text-2xl font-bold text-[#EBF73F]">
-                    ~15-50 FIL/month
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Actual revenue depends on demand and query complexity
-                  </p>
-                  </div>
+                      <p className="font-semibold text-lg">{file.name}</p>
+                      <p className="text-sm text-[#C4FEC2]/70 mt-1">{formatBytes(file.size)}</p>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                        className="mt-4 text-sm underline text-white/40 hover:text-white/70 transition-colors"
+                      >
+                        Remove file
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-white/40">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </div>
+                      <p className="font-semibold text-lg text-white/60">Drop your CSV or JSON file here</p>
+                      <p className="text-sm mt-2 text-white/30">or click anywhere to browse</p>
+                      <div className="flex justify-center gap-4 mt-4 text-xs text-white/20">
+                        <span>Supports .csv and .json</span>
+                        <span>|</span>
+                        <span>Max 100MB</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-between mt-8">
-              <button className="text-gray-400 hover:text-white transition-colors">
-                Save as Draft
-              </button>
-              <div className="space-x-4">
-                <button className="border border-gray-700 text-white hover:bg-gray-50 px-6 py-2 rounded-lg transition-opacity">
-                  Preview
-                </button>
-                <button className="bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-6 py-2 rounded-lg transition-colors font-semibold">
-                  Publish Dataset
-                </button>
+              {/* Dataset Name */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-white/80">Dataset Name *</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Financial Transactions Dataset 2024"
+                  className="w-full border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                />
               </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-white/80">Description *</label>
+                <textarea
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe your dataset, its contents, and potential use cases..."
+                  className="w-full border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-white/80">Category *</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full border border-white/10 rounded-xl px-4 py-3 text-white bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                >
+                  <option value="" className="bg-[#141414]">Select a category...</option>
+                  <option value="Finance" className="bg-[#141414]">Finance</option>
+                  <option value="Healthcare" className="bg-[#141414]">Healthcare</option>
+                  <option value="E-commerce" className="bg-[#141414]">E-commerce</option>
+                  <option value="Environment" className="bg-[#141414]">Environment</option>
+                  <option value="Social" className="bg-[#141414]">Social Media</option>
+                  <option value="Logistics" className="bg-[#141414]">Logistics</option>
+                  <option value="Technology" className="bg-[#141414]">Technology</option>
+                </select>
+              </div>
+
+              {/* Allowed Query Types */}
+              <div>
+                <label className="block text-sm font-medium mb-3 text-white/80">Allowed Query Types *</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {QUERY_TYPES.map((qt) => (
+                    <label
+                      key={qt.value}
+                      className={`flex items-start space-x-3 p-4 border rounded-xl cursor-pointer transition-all duration-200 ${
+                        allowedQueries.includes(qt.value)
+                          ? 'border-[#C4FEC2]/40 bg-[#C4FEC2]/5'
+                          : 'border-white/10 hover:border-white/20 bg-white/[0.02]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={allowedQueries.includes(qt.value)}
+                        onChange={() => toggleQueryType(qt.value)}
+                        className="mt-1 rounded border-white/30 accent-[#C4FEC2]"
+                      />
+                      <div>
+                        <div className="font-medium text-white">{qt.label}</div>
+                        <div className="text-sm text-white/40">{qt.desc}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-white/80">Base Price per Query *</label>
+                <div className="flex">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.001"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="flex-1 border border-white/10 rounded-l-xl px-4 py-3 text-white bg-white/5 focus:border-[#C4FEC2]/50 focus:outline-none focus:ring-1 focus:ring-[#C4FEC2]/20 transition-colors"
+                  />
+                  <span className="bg-white/5 border border-white/10 border-l-0 rounded-r-xl px-4 py-3 text-white/50 font-medium">
+                    tFIL
+                  </span>
+                </div>
+                <p className="text-xs text-white/30 mt-1.5">Complex query types (ML, Cohort) will have multiplied pricing</p>
+                <p className="text-xs text-[#C4FEC2]/70 mt-1">
+                  ~{estimateEarnings(price)} tFIL/month based on average query volume
+                </p>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4">{error}</div>
+              )}
+
+              {/* Publish Button */}
+              <div className="flex justify-end pt-6 border-t border-white/10">
+                <button
+                  onClick={publishDataset}
+                  disabled={submitting}
+                  className={`px-8 py-3 rounded-xl font-semibold text-lg transition-all duration-300 ${
+                    submitting
+                      ? 'bg-white/10 text-white/30 cursor-not-allowed'
+                      : 'bg-[#C4FEC2] hover:bg-[#b0f0ae] text-black hover:transform hover:-translate-y-1 hover:shadow-lg hover:shadow-[#C4FEC2]/20'
+                  }`}
+                >
+                  {submitting ? 'Uploading to IPFS & Publishing...' : 'Publish Dataset'}
+                </button>
               </div>
             </div>
+          </div>
+
+          {/* My Published Datasets */}
+          <div className="mt-8 bg-[#141414] rounded-2xl p-8 sm:p-10 border border-white/10">
+            <h3 className="text-xl font-bold text-white mb-4">Published Datasets</h3>
+            {loadingDatasets ? (
+              <p className="text-white/40">Loading...</p>
+            ) : myDatasets.length === 0 ? (
+              <p className="text-white/40">No datasets published yet. Upload your first CSV or JSON file above!</p>
+            ) : (
+              <div className="space-y-3">
+                {myDatasets.map((ds) => (
+                  <div key={ds.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white">{ds.title}</span>
+                        {ds.verified && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-[#C4FEC2]/10 text-[#C4FEC2] border border-[#C4FEC2]/20">Verified</span>
+                        )}
+                      </div>
+                      <div className="text-sm text-white/40 mt-1">
+                        {ds.category} &middot; {formatBytes(ds.size)} &middot; {ds.allowedQueries.length} query types &middot; {ds.totalQueries} queries executed
+                      </div>
+                      {ds.cid && (
+                        <div className="text-xs text-white/20 mt-1 font-mono">CID: {ds.cid}</div>
+                      )}
+                    </div>
+                    <div className="text-right ml-4">
+                      <div className="font-bold text-[#C4FEC2]">{ds.price} tFIL</div>
+                      <div className="text-xs text-white/40">per query</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2] relative overflow-hidden">
-        <div className="relative z-10 max-w-7xl mx-auto">
+      {/* How It Works */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-[#141414]">
+        <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-black">Why Sell on DataCloud?</h2>
+            <h2 className="text-3xl font-bold mb-4 text-white">How It Works</h2>
+            <p className="text-xl text-white/50">Simple steps to start earning from your datasets</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-8">
+              <div className="w-16 h-16 bg-[#C4FEC2] rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-black">1</span>
               </div>
-              <h3 className="font-semibold mb-2 text-black">Complete Privacy</h3>
-              <p className="text-black/70 text-sm">Your raw data never leaves the secure environment</p>
+              <h3 className="text-xl font-semibold mb-3 text-white">Upload & Publish</h3>
+              <p className="text-white/50">Upload your CSV or JSON file. It gets stored on IPFS via Lighthouse and registered on Filecoin.</p>
             </div>
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-8">
+              <div className="w-16 h-16 bg-[#C4FEC2] rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-black">2</span>
               </div>
-              <h3 className="font-semibold mb-2 text-black">Fair Revenue</h3>
-              <p className="text-black/70 text-sm">Transparent pricing with automatic payments</p>
+              <h3 className="text-xl font-semibold mb-3 text-white">Buyers Query</h3>
+              <p className="text-white/50">Buyers discover your dataset on the marketplace and run privacy-preserving queries on your data.</p>
             </div>
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <div className="text-center bg-white/5 border border-white/10 rounded-2xl p-8">
+              <div className="w-16 h-16 bg-[#C4FEC2] rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-black">3</span>
               </div>
-              <h3 className="font-semibold mb-2 text-black">Global Reach</h3>
-              <p className="text-black/70 text-sm">Access buyers from around the world</p>
-            </div>
-            <div className="text-center bg-white rounded-xl p-6">
-              <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold mb-2 text-black">Usage Analytics</h3>
-              <p className="text-black/70 text-sm">Detailed insights into data usage and revenue</p>
+              <h3 className="text-xl font-semibold mb-3 text-white">Earn tFIL</h3>
+              <p className="text-white/50">Receive automatic tFIL payments for every query execution. Track revenue in real time.</p>
             </div>
           </div>
         </div>

@@ -1,18 +1,275 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
+// Types matching what the API returns
+interface ApiDataset {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  owner: string;
+  price: string;
+  size: number;
+  records?: number;
+  format?: string;
+  allowedQueries: string[];
+  verified: boolean;
+  cid: string;
+  onChainId?: string;
+  totalQueries: number;
+  revenue: string;
+}
+
+interface QueryResult {
+  id: string;
+  status: string;
+  price: string;
+  result?: Record<string, unknown>;
+  resultCid?: string;
+  attestation?: Record<string, unknown>;
+}
+
+const QUERY_TYPE_LABELS: Record<string, string> = {
+  aggregation: 'Statistical Aggregation',
+  ml_training: 'Machine Learning Training',
+  analytics: 'Analytics',
+  correlation: 'Correlation Analysis',
+  cohort: 'Cohort Analysis',
+  custom: 'Custom Query',
+};
+
+const QUERY_COST_MULTIPLIERS: Record<string, number> = {
+  aggregation: 1,
+  analytics: 1.6,
+  ml_training: 3,
+  cohort: 2.4,
+  correlation: 2,
+  custom: 2,
+};
+
 export default function BuyersPage() {
-  const [selectedDataset, setSelectedDataset] = useState('');
-  const [selectedQuery, setSelectedQuery] = useState('');
+  // Wallet address fetched at execution time via dynamic import to avoid hydration issues
+  const [walletAddress, setWalletAddress] = useState('');
+
+  // Step state
+  const [datasets, setDatasets] = useState<ApiDataset[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDataset, setSelectedDataset] = useState<ApiDataset | null>(null);
+  const [selectedQueryType, setSelectedQueryType] = useState('');
+
+  // Query parameters
+  const [aggFunction, setAggFunction] = useState('sum');
+  const [aggColumn, setAggColumn] = useState('');
+  const [aggGroupBy, setAggGroupBy] = useState('');
+  const [mlModel, setMlModel] = useState('logistic');
+  const [mlTarget, setMlTarget] = useState('');
+  const [mlFeatures, setMlFeatures] = useState('');
+  const [cohortDef, setCohortDef] = useState('signup');
+  const [cohortPeriod, setCohortPeriod] = useState('monthly');
+  const [cohortMetric, setCohortMetric] = useState('retention');
+
+  // Execution state
+  const [executing, setExecuting] = useState(false);
+  const [paymentStep, setPaymentStep] = useState('');
+  const [queryResult, setQueryResult] = useState<QueryResult | null>(null);
+  const [error, setError] = useState('');
+
+  // Fetch datasets
+  const fetchDatasets = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/datasets?limit=50');
+      const json = await res.json();
+      if (json.success) {
+        setDatasets(json.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch datasets:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDatasets();
+  }, [fetchDatasets]);
+
+  // Calculate cost
+  const estimatedCost = selectedDataset && selectedQueryType
+    ? (parseFloat(selectedDataset.price) * (QUERY_COST_MULTIPLIERS[selectedQueryType] || 1)).toFixed(4)
+    : '0';
+
+  // Build parameters object
+  function getQueryParameters(): Record<string, unknown> {
+    switch (selectedQueryType) {
+      case 'aggregation':
+        return { function: aggFunction, column: aggColumn || 'value', groupBy: aggGroupBy || undefined };
+      case 'ml_training':
+        return { modelType: mlModel, targetVariable: mlTarget || 'target', features: mlFeatures ? mlFeatures.split(',').map(s => s.trim()) : [] };
+      case 'cohort':
+        return { cohortDefinition: cohortDef, timePeriod: cohortPeriod, metric: cohortMetric };
+      case 'correlation':
+        return { method: 'pearson' };
+      case 'analytics':
+        return { type: 'distribution' };
+      default:
+        return {};
+    }
+  }
+
+  // Execute query with on-chain payment
+  async function executeQuery() {
+    if (!selectedDataset || !selectedQueryType) return;
+
+    // Get wallet address at execution time
+    let address = walletAddress;
+    try {
+      const { getAccount } = await import('wagmi/actions');
+      const { getConfig } = await import('@/lib/get-wagmi-config');
+      const account = getAccount(getConfig());
+      if (account.isConnected && account.address) {
+        address = account.address;
+        setWalletAddress(address);
+      }
+    } catch {
+      // wagmi not available
+    }
+
+    if (!address) {
+      setError('Please connect your wallet first using the Connect Wallet button in the navbar.');
+      return;
+    }
+
+    setExecuting(true);
+    setError('');
+    setQueryResult(null);
+
+    const parameters = getQueryParameters();
+    const dataset = selectedDataset;
+    const cost = estimatedCost;
+
+    try {
+      // Check if on-chain payment is possible
+      const { isContractConfigured, QUERY_MARKET_ADDRESS, queryMarketAbi } = await import('@/lib/contract-config');
+      const canPayOnChain = isContractConfigured() && dataset.onChainId;
+
+      let txHash = '';
+      let onChainOrderId = '';
+
+      if (canPayOnChain) {
+        // Step 1: Sign transaction
+        setPaymentStep('Signing transaction in your wallet...');
+
+        const { parseEther, keccak256, toHex, decodeEventLog } = await import('viem');
+        const { writeContract, getPublicClient, waitForTransactionReceipt } = await import('wagmi/actions');
+        const { getConfig } = await import('@/lib/get-wagmi-config');
+        const config = getConfig();
+
+        const queryHash = keccak256(toHex(JSON.stringify(parameters)));
+
+        const hash = await writeContract(config, {
+          address: QUERY_MARKET_ADDRESS,
+          abi: queryMarketAbi,
+          functionName: 'createOrder',
+          args: [BigInt(dataset.onChainId!), selectedQueryType, queryHash],
+          value: parseEther(cost),
+        });
+
+        txHash = hash;
+
+        // Step 2: Wait for confirmation
+        setPaymentStep('Waiting for on-chain confirmation...');
+
+        const receipt = await waitForTransactionReceipt(config, { hash });
+
+        // Parse OrderCreated event to get on-chain order ID
+        for (const log of receipt.logs) {
+          try {
+            const event = decodeEventLog({
+              abi: queryMarketAbi,
+              data: log.data,
+              topics: log.topics,
+            });
+            if (event.eventName === 'OrderCreated') {
+              onChainOrderId = String((event.args as { orderId: bigint }).orderId);
+              break;
+            }
+          } catch {
+            // Not our event
+          }
+        }
+      }
+
+      // Step 3: Submit query to backend
+      setPaymentStep(canPayOnChain ? 'Running computation...' : 'Executing query...');
+
+      const res = await fetch('/api/queries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datasetId: dataset.id,
+          queryType: selectedQueryType,
+          parameters,
+          buyer: address,
+          price: cost,
+          txHash,
+          onChainOrderId,
+        }),
+      });
+
+      const json = await res.json();
+      if (!json.success) {
+        throw new Error(json.error || 'Query failed');
+      }
+
+      // Poll for result
+      const orderId = json.data.id;
+      setPaymentStep('Waiting for results...');
+
+      let attempts = 0;
+      while (attempts < 15) {
+        await new Promise(r => setTimeout(r, 1500));
+        const pollRes = await fetch(`/api/queries?id=${orderId}`);
+        const pollJson = await pollRes.json();
+        if (pollJson.success && pollJson.data) {
+          if (pollJson.data.status === 'completed') {
+            setQueryResult(pollJson.data);
+            break;
+          }
+          if (pollJson.data.status === 'failed') {
+            throw new Error('Query execution failed');
+          }
+        }
+        attempts++;
+      }
+
+      if (attempts >= 15 && !queryResult) {
+        // Last check
+        const finalRes = await fetch(`/api/queries?id=${orderId}`);
+        const finalJson = await finalRes.json();
+        if (finalJson.success) setQueryResult(finalJson.data);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Query execution failed';
+      if (msg.includes('User rejected') || msg.includes('denied')) {
+        setError('Transaction was rejected in your wallet.');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setExecuting(false);
+      setPaymentStep('');
+    }
+  }
 
   return (
     <div className="min-h-screen w-full bg-[#C4FEC2] relative text-black">
       <div className="relative z-10">
         <Navbar />
-      
+
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-[#C4FEC2]">
         <div className="max-w-7xl mx-auto text-center">
@@ -20,15 +277,10 @@ export default function BuyersPage() {
             Access Premium Data <span className="text-black">Insights</span>
           </h1>
           <p className="text-xl text-black/70 mb-8 max-w-3xl mx-auto">
-            Run privacy-preserving analytics on high-quality datasets without accessing raw data. Get verified results with cryptographic proofs.
+            Run privacy-preserving analytics on high-quality datasets without accessing raw data. Pay with tFIL via smart contract escrow.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-lg">
-              Browse Datasets
-            </button>
-            <button className="border border-black/30 text-black hover:border-black hover:bg-white/50 bg-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300">
-              Try Sample Query
-            </button>
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-3 rounded-lg inline-block">
+            Connect your wallet to execute queries and pay with tFIL
           </div>
         </div>
       </section>
@@ -44,49 +296,90 @@ export default function BuyersPage() {
             </p>
 
             <div className="space-y-6">
-              {/* Dataset Selection */}
+              {/* Step 1: Dataset Selection */}
               <div>
-                <label className="block text-sm font-medium mb-2">Select Dataset</label>
-                <select 
-                  value={selectedDataset}
-                  onChange={(e) => setSelectedDataset(e.target.value)}
-                  className="w-full border border-gray-700 rounded-lg px-4 py-3 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
-                >
-                  <option value="">Choose a dataset...</option>
-                  <option value="financial">Financial Transactions Dataset (2.3 GB)</option>
-                  <option value="healthcare">Healthcare Research Data (5.7 GB)</option>
-                  <option value="ecommerce">E-commerce Behavior Analytics (1.8 GB)</option>
-                  <option value="climate">Climate & Weather Patterns (4.2 GB)</option>
-                </select>
+                <label className="block text-sm font-medium mb-2 text-white">Step 1: Select Dataset</label>
+                {loading ? (
+                  <div className="text-gray-400">Loading datasets...</div>
+                ) : datasets.length === 0 ? (
+                  <div className="text-gray-400">No datasets available. Sellers must upload data first.</div>
+                ) : (
+                  <select
+                    value={selectedDataset?.id || ''}
+                    onChange={(e) => {
+                      const ds = datasets.find(d => d.id === e.target.value) || null;
+                      setSelectedDataset(ds);
+                      setSelectedQueryType('');
+                      setQueryResult(null);
+                      setError('');
+                    }}
+                    className="w-full border border-gray-700 rounded-lg px-4 py-3 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
+                  >
+                    <option value="">Choose a dataset...</option>
+                    {datasets.map(ds => (
+                      <option key={ds.id} value={ds.id}>
+                        {ds.title} ({ds.records || 0} records) — {ds.price} tFIL/query
+                        {ds.onChainId ? ' ✓ On-chain' : ''}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {selectedDataset && (
+                  <div className="mt-3 p-3 border border-gray-700 rounded-lg bg-[#1a1a1a] text-sm text-gray-300">
+                    <div><strong>Category:</strong> {selectedDataset.category}</div>
+                    <div><strong>Records:</strong> {selectedDataset.records || 0}</div>
+                    <div><strong>Base price:</strong> {selectedDataset.price} tFIL</div>
+                    {selectedDataset.onChainId && (
+                      <div className="text-green-400 mt-1">On-chain registered (ID: {selectedDataset.onChainId}) — tFIL payment via smart contract</div>
+                    )}
+                    {!selectedDataset.onChainId && (
+                      <div className="text-yellow-400 mt-1">Off-chain only — no tFIL deduction</div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Query Type */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Query Type</label>
-                <select 
-                  value={selectedQuery}
-                  onChange={(e) => setSelectedQuery(e.target.value)}
-                  className="w-full border border-gray-700 rounded-lg px-4 py-3 text-white bg-[#141414] focus:border-[#EBF73F] focus:outline-none"
-                >
-                  <option value="">Choose query type...</option>
-                  <option value="aggregation">Statistical Aggregation</option>
-                  <option value="ml">Machine Learning Training</option>
-                  <option value="cohort">Cohort Analysis</option>
-                  <option value="correlation">Correlation Analysis</option>
-                </select>
-              </div>
+              {/* Step 2: Query Type */}
+              {selectedDataset && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-white">Step 2: Query Type</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {selectedDataset.allowedQueries.map(qt => (
+                      <button
+                        key={qt}
+                        onClick={() => {
+                          setSelectedQueryType(qt);
+                          setQueryResult(null);
+                          setError('');
+                        }}
+                        className={`px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
+                          selectedQueryType === qt
+                            ? 'border-[#EBF73F] bg-[#EBF73F]/10 text-[#EBF73F]'
+                            : 'border-gray-700 text-gray-300 hover:border-gray-500'
+                        }`}
+                      >
+                        {QUERY_TYPE_LABELS[qt] || qt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              {/* Query Parameters */}
-              {selectedQuery && (
-                <div className="border border-gray-700 rounded-lg p-6 bg-[#141414] relative overflow-hidden">
-                  <div className="relative z-10">
-                  <h3 className="font-semibold mb-4">Query Parameters</h3>
-                  
-                  {selectedQuery === 'aggregation' && (
+              {/* Step 3: Query Parameters */}
+              {selectedQueryType && (
+                <div className="border border-gray-700 rounded-lg p-6 bg-[#1a1a1a]">
+                  <h3 className="font-semibold mb-4 text-white">Step 3: Configure Parameters</h3>
+
+                  {selectedQueryType === 'aggregation' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Aggregation Function</label>
-                        <select className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]">
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Aggregation Function</label>
+                        <select
+                          value={aggFunction}
+                          onChange={(e) => setAggFunction(e.target.value)}
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                        >
                           <option value="sum">SUM</option>
                           <option value="avg">AVG</option>
                           <option value="count">COUNT</option>
@@ -95,29 +388,37 @@ export default function BuyersPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Column</label>
-                        <input 
-                          type="text" 
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Column</label>
+                        <input
+                          type="text"
+                          value={aggColumn}
+                          onChange={(e) => setAggColumn(e.target.value)}
                           placeholder="e.g., transaction_amount"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 bg-[#141414]"
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Group By (optional)</label>
-                        <input 
-                          type="text" 
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Group By (optional)</label>
+                        <input
+                          type="text"
+                          value={aggGroupBy}
+                          onChange={(e) => setAggGroupBy(e.target.value)}
                           placeholder="e.g., age_group, region"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 bg-[#141414]"
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
                         />
                       </div>
                     </div>
                   )}
 
-                  {selectedQuery === 'ml' && (
+                  {selectedQueryType === 'ml_training' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Model Type</label>
-                        <select className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]">
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Model Type</label>
+                        <select
+                          value={mlModel}
+                          onChange={(e) => setMlModel(e.target.value)}
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                        >
                           <option value="logistic">Logistic Regression</option>
                           <option value="linear">Linear Regression</option>
                           <option value="random-forest">Random Forest</option>
@@ -125,45 +426,61 @@ export default function BuyersPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Target Variable</label>
-                        <input 
-                          type="text" 
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Target Variable</label>
+                        <input
+                          type="text"
+                          value={mlTarget}
+                          onChange={(e) => setMlTarget(e.target.value)}
                           placeholder="e.g., is_fraud, customer_value"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 bg-[#141414]"
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Feature Columns</label>
-                        <textarea 
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Feature Columns</label>
+                        <textarea
                           rows={3}
+                          value={mlFeatures}
+                          onChange={(e) => setMlFeatures(e.target.value)}
                           placeholder="e.g., age, income, location, transaction_history"
-                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-400 bg-[#141414]"
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 bg-[#141414]"
                         />
                       </div>
                     </div>
                   )}
 
-                  {selectedQuery === 'cohort' && (
+                  {selectedQueryType === 'cohort' && (
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium mb-2">Cohort Definition</label>
-                        <select className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]">
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Cohort Definition</label>
+                        <select
+                          value={cohortDef}
+                          onChange={(e) => setCohortDef(e.target.value)}
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                        >
                           <option value="signup">Sign-up Date</option>
                           <option value="first-purchase">First Purchase Date</option>
                           <option value="custom">Custom Event</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Time Period</label>
-                        <select className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]">
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Time Period</label>
+                        <select
+                          value={cohortPeriod}
+                          onChange={(e) => setCohortPeriod(e.target.value)}
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                        >
                           <option value="weekly">Weekly</option>
                           <option value="monthly">Monthly</option>
                           <option value="quarterly">Quarterly</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">Metric</label>
-                        <select className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]">
+                        <label className="block text-sm font-medium mb-2 text-gray-300">Metric</label>
+                        <select
+                          value={cohortMetric}
+                          onChange={(e) => setCohortMetric(e.target.value)}
+                          className="w-full border border-gray-700 rounded-lg px-4 py-2 text-white bg-[#141414]"
+                        >
                           <option value="retention">Retention Rate</option>
                           <option value="revenue">Revenue per Cohort</option>
                           <option value="activity">Activity Rate</option>
@@ -171,43 +488,116 @@ export default function BuyersPage() {
                       </div>
                     </div>
                   )}
-                  </div>
+
+                  {(selectedQueryType === 'correlation' || selectedQueryType === 'analytics') && (
+                    <div className="text-gray-400 text-sm">
+                      This query type runs automatically on all numeric columns in the dataset.
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Cost Estimate */}
-              {selectedDataset && selectedQuery && (
-                <div className="border border-gray-700 rounded-lg p-4 bg-[#141414] relative overflow-hidden">
-                  <div className="relative z-10">
+              {selectedDataset && selectedQueryType && (
+                <div className="border border-gray-700 rounded-lg p-4 bg-[#141414]">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h4 className="font-semibold">Estimated Cost</h4>
-                      <p className="text-sm text-gray-400">Based on query complexity and dataset size</p>
+                      <h4 className="font-semibold text-white">Estimated Cost</h4>
+                      <p className="text-sm text-gray-400">Based on query complexity and dataset pricing</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-[#EBF73F]">0.08 FIL</div>
-                      <p className="text-xs text-gray-400">~$2.40 USD</p>
+                      <div className="text-2xl font-bold text-[#EBF73F]">{estimatedCost} tFIL</div>
+                      {selectedDataset.onChainId ? (
+                        <p className="text-xs text-green-400">Paid via smart contract escrow</p>
+                      ) : (
+                        <p className="text-xs text-yellow-400">Off-chain (no payment required)</p>
+                      )}
                     </div>
-                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment progress */}
+              {executing && paymentStep && (
+                <div className="border border-[#EBF73F]/30 rounded-lg p-4 bg-[#EBF73F]/5">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin h-5 w-5 border-2 border-[#EBF73F] border-t-transparent rounded-full" />
+                    <span className="text-[#EBF73F] font-medium">{paymentStep}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <div className="border border-red-500/30 rounded-lg p-4 bg-red-500/5">
+                  <p className="text-red-400">{error}</p>
+                </div>
+              )}
+
+              {/* Query Result */}
+              {queryResult && (
+                <div className="border border-green-500/30 rounded-lg p-6 bg-green-500/5">
+                  <h3 className="font-semibold text-green-400 mb-3">Query Result</h3>
+                  <div className="text-sm text-gray-300 space-y-2">
+                    <div><strong>Status:</strong> <span className="text-green-400">{queryResult.status}</span></div>
+                    <div><strong>Price:</strong> {queryResult.price} tFIL</div>
+                    {queryResult.resultCid && (
+                      <div><strong>Result CID:</strong> <span className="font-mono text-xs">{queryResult.resultCid}</span></div>
+                    )}
+                    {queryResult.result && (
+                      <div className="mt-3">
+                        <strong>Data:</strong>
+                        <pre className="mt-2 p-3 bg-[#141414] rounded-lg overflow-auto max-h-96 text-xs">
+                          {JSON.stringify(queryResult.result, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {queryResult.attestation && Object.keys(queryResult.attestation).length > 0 && (
+                      <div className="mt-3">
+                        <strong>Attestation:</strong>
+                        <pre className="mt-2 p-3 bg-[#141414] rounded-lg overflow-auto text-xs">
+                          {JSON.stringify(queryResult.attestation, null, 2)}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Execute Button */}
               <div className="flex justify-between items-center">
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  Save Query Template
+                <button
+                  onClick={() => {
+                    setSelectedDataset(null);
+                    setSelectedQueryType('');
+                    setQueryResult(null);
+                    setError('');
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Reset
                 </button>
                 <div className="space-x-4">
-                  <button className="border border-gray-700 text-white hover:bg-gray-50 px-6 py-2 rounded-lg transition-opacity">
-                    Preview Results
+                  <button
+                    onClick={executeQuery}
+                    disabled={!selectedDataset || !selectedQueryType || executing}
+                    className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                      !selectedDataset || !selectedQueryType || executing
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        : 'bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black'
+                    }`}
+                  >
+                    {executing
+                      ? 'Processing...'
+                      : !selectedQueryType
+                        ? 'Select a query type above'
+                        : selectedDataset?.onChainId
+                          ? `Pay ${estimatedCost} tFIL & Execute`
+                          : 'Execute Query'}
                   </button>
-                  <button className="bg-[#EBF73F] hover:bg-[#EBF73F]/80 text-black px-6 py-2 rounded-lg transition-colors font-semibold">
-                    Execute Query
-                  </button>
-                </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -222,178 +612,74 @@ export default function BuyersPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
             <div className="text-center">
               <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🔍</span>
+                <span className="text-2xl">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Discover Datasets</h3>
-              <p className="text-gray-400 mb-6">
-                Browse our marketplace of verified datasets with detailed metadata, schema information, and sample statistics.
+              <h3 className="text-xl font-semibold mb-4 text-white">Select Dataset</h3>
+              <p className="text-gray-400">
+                Browse real datasets uploaded by sellers. View metadata, record counts, and pricing before you commit.
               </p>
-              <div className="border border-gray-700 rounded-lg p-4 bg-[#141414] relative overflow-hidden">
-                <div className="relative z-10">
-                <h4 className="font-semibold mb-2">What you get:</h4>
-                <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• Dataset schema & size</li>
-                  <li>• Quality metrics</li>
-                  <li>• Usage statistics</li>
-                  <li>• Provider verification</li>
-                </ul>
-                </div>
-              </div>
             </div>
 
-            {/* Step 2 */}
             <div className="text-center">
               <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">⚙️</span>
+                <span className="text-2xl">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Configure Query</h3>
-              <p className="text-gray-400 mb-6">
-                Use our query builder to create custom analytics, ML training jobs, or statistical analyses with transparent pricing.
+              <h3 className="text-xl font-semibold mb-4 text-white">Pay with tFIL</h3>
+              <p className="text-gray-400">
+                Your tFIL is escrowed in the QueryMarket smart contract. Funds are released to the dataset owner only after successful computation.
               </p>
-              <div className="border border-gray-700 rounded-lg p-4 bg-[#141414] relative overflow-hidden">
-                <div className="relative z-10">
-                <h4 className="font-semibold mb-2">Query Types:</h4>
-                <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• Statistical aggregations</li>
-                  <li>• ML model training</li>
-                  <li>• Cohort analysis</li>
-                  <li>• Custom analytics</li>
-                </ul>
-                </div>
-              </div>
             </div>
 
-            {/* Step 3 */}
             <div className="text-center">
               <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📊</span>
+                <span className="text-2xl">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Get Verified Results</h3>
-              <p className="text-gray-400 mb-6">
-                Receive cryptographically verified results with proof of execution. Download reports or integrate via API.
+              <h3 className="text-xl font-semibold mb-4 text-white">Get Verified Results</h3>
+              <p className="text-gray-400">
+                Receive results with cryptographic attestation. Results are stored on IPFS via Lighthouse for permanent verifiability.
               </p>
-              <div className="border border-gray-700 rounded-lg p-4 bg-[#141414] relative overflow-hidden">
-                <div className="relative z-10">
-                <h4 className="font-semibold mb-2">Guarantees:</h4>
-                <ul className="text-sm text-gray-400 space-y-1">
-                  <li>• Proof of execution</li>
-                  <li>• Data integrity verification</li>
-                  <li>• Result authenticity</li>
-                  <li>• Query audit trail</li>
-                </ul>
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Use Cases */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-white">Popular Use Cases</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: '🏦',
-                title: 'Financial Analytics',
-                description: 'Risk assessment, fraud detection, and market analysis without exposing sensitive transaction data.'
-              },
-              {
-                icon: '🏥',
-                title: 'Healthcare Research',
-                description: 'Drug discovery, treatment analysis, and epidemiological studies with patient privacy protection.'
-              },
-              {
-                icon: '🛒',
-                title: 'Market Research',
-                description: 'Consumer behavior analysis, demand forecasting, and competitive intelligence.'
-              },
-              {
-                icon: '🌍',
-                title: 'Climate Studies',
-                description: 'Environmental monitoring, climate modeling, and sustainability impact analysis.'
-              },
-              {
-                icon: '📱',
-                title: 'Product Analytics',
-                description: 'User engagement analysis, A/B testing, and feature optimization insights.'
-              },
-              {
-                icon: '🚚',
-                title: 'Supply Chain',
-                description: 'Logistics optimization, demand planning, and supply chain risk assessment.'
-              }
-            ].map((useCase, index) => (
-              <div key={index} className="border border-gray-700 rounded-xl p-6 hover:bg-gray-50 transition-opacity bg-[#141414] relative overflow-hidden">
-                <div className="relative z-10">
-                <div className="text-4xl mb-4">{useCase.icon}</div>
-                <h3 className="text-xl font-semibold mb-3">{useCase.title}</h3>
-                <p className="text-gray-400">{useCase.description}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 border-t border-gray-700 relative overflow-hidden">
         <div className="relative z-10 max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-6 text-white">Transparent Pricing</h2>
           <p className="text-xl text-gray-400 mb-8">
-            Pay only for successful query execution. No hidden fees or minimum commitments.
+            Pay only for successful query execution. tFIL is escrowed and refunded if computation fails.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="border border-gray-700 rounded-xl p-6 bg-[#141414] relative overflow-hidden">
-              <div className="relative z-10">
+            <div className="border border-gray-700 rounded-xl p-6 bg-[#141414]">
               <h3 className="text-lg font-semibold mb-2 text-white">Simple Queries</h3>
-              <div className="text-3xl font-bold text-[#EBF73F] mb-4">0.01-0.05 FIL</div>
+              <div className="text-3xl font-bold text-[#EBF73F] mb-4">1x base</div>
               <ul className="text-sm text-gray-400 space-y-2">
-                <li>• Basic aggregations</li>
-                <li>• Statistical summaries</li>
-                <li>• Count operations</li>
+                <li>Statistical aggregations</li>
+                <li>SUM, AVG, COUNT, MIN, MAX</li>
               </ul>
-              </div>
             </div>
 
-            <div className="border border-[#EBF73F] rounded-xl p-6 relative bg-[#141414] overflow-hidden">
-              <div className="relative z-10">
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#EBF73F] text-black px-3 py-1 rounded-full text-xs font-medium">
-                  Most Popular
-                </div>
-                <h3 className="text-lg font-semibold mb-2 text-white">Analytics</h3>
-              <div className="text-3xl font-bold text-[#EBF73F] mb-4">0.05-0.15 FIL</div>
+            <div className="border border-[#EBF73F] rounded-xl p-6 bg-[#141414]">
+              <h3 className="text-lg font-semibold mb-2 text-white">Analytics</h3>
+              <div className="text-3xl font-bold text-[#EBF73F] mb-4">1.6-2.4x</div>
               <ul className="text-sm text-gray-400 space-y-2">
-                <li>• Cohort analysis</li>
-                <li>• Correlation studies</li>
-                <li>• Complex aggregations</li>
+                <li>Cohort & correlation analysis</li>
+                <li>Distribution analytics</li>
               </ul>
-              </div>
             </div>
 
-            <div className="border border-gray-700 rounded-xl p-6 bg-[#141414] relative overflow-hidden">
-              <div className="relative z-10">
+            <div className="border border-gray-700 rounded-xl p-6 bg-[#141414]">
               <h3 className="text-lg font-semibold mb-2 text-white">ML Training</h3>
-              <div className="text-3xl font-bold text-[#EBF73F] mb-4">0.15-0.50 FIL</div>
+              <div className="text-3xl font-bold text-[#EBF73F] mb-4">3x base</div>
               <ul className="text-sm text-gray-400 space-y-2">
-                <li>• Model training</li>
-                <li>• Feature engineering</li>
-                <li>• Cross-validation</li>
+                <li>Model training</li>
+                <li>Feature engineering</li>
               </ul>
-              </div>
             </div>
-          </div>
-
-          <div className="mt-8 text-sm text-gray-400">
-            <p>Prices vary based on dataset size, query complexity, and computational requirements.</p>
           </div>
         </div>
       </section>

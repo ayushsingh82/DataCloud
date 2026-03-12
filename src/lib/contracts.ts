@@ -1,4 +1,4 @@
-// Smart Contract Interfaces and Types
+// Smart Contract Interfaces, Types, and Real On-Chain Integration
 
 export interface Dataset {
   id: string;
@@ -9,14 +9,14 @@ export interface Dataset {
   category: string;
   schemaHash: string;
   size: number; // in bytes
-  price: string; // in FIL
+  price: string; // in tFIL
   allowedQueries: QueryType[];
   pdpParams: PDPParams;
   verified: boolean;
   createdAt: number;
   lastProofAt: number;
   totalQueries: number;
-  revenue: string; // in FIL
+  revenue: string; // in tFIL
 }
 
 export interface QueryOrder {
@@ -25,18 +25,19 @@ export interface QueryOrder {
   buyer: string; // Wallet address
   queryType: QueryType;
   parameters: Record<string, unknown>;
-  price: string; // in FIL
+  price: string; // in tFIL
   status: OrderStatus;
   createdAt: number;
   executedAt?: number;
   resultCid?: string; // IPFS CID of results
+  result?: Record<string, unknown>; // Computed query results
   attestation?: QueryAttestation;
 }
 
 export interface PDPParams {
   challengeInterval: number; // in seconds
   proofTimeout: number; // in seconds
-  slashingAmount: string; // in FIL
+  slashingAmount: string; // in tFIL
   requiredProofs: number;
 }
 
@@ -66,238 +67,235 @@ export enum OrderStatus {
   REFUNDED = 'refunded'
 }
 
-// Contract ABIs (simplified)
+// ---------------------------------------------------------------------------
+// Contract ABIs — matching the deployed Solidity contracts
+// ---------------------------------------------------------------------------
+
 export const DATASET_REGISTRY_ABI = [
-  {
-    "name": "registerDataset",
-    "type": "function",
-    "inputs": [
-      {"name": "cid", "type": "string"},
-      {"name": "schemaHash", "type": "bytes32"},
-      {"name": "accessPolicy", "type": "bytes"},
-      {"name": "priceModel", "type": "uint256"},
-      {"name": "pdpParams", "type": "tuple"}
-    ],
-    "outputs": [{"name": "datasetId", "type": "uint256"}]
-  },
-  {
-    "name": "updateDataset",
-    "type": "function",
-    "inputs": [
-      {"name": "datasetId", "type": "uint256"},
-      {"name": "updates", "type": "bytes"}
-    ]
-  },
-  {
-    "name": "getDataset",
-    "type": "function",
-    "inputs": [{"name": "datasetId", "type": "uint256"}],
-    "outputs": [{"name": "dataset", "type": "tuple"}]
-  }
+  "function registerDataset(string cid, string title, string category, uint256 pricePerQuery, bytes32 schemaHash) external returns (uint256)",
+  "function updatePrice(uint256 datasetId, uint256 newPrice) external",
+  "function verifyDataset(uint256 datasetId) external",
+  "function recordQuery(uint256 datasetId, uint256 revenue) external",
+  "function getDataset(uint256 datasetId) external view returns (tuple(uint256 id, string cid, address owner, string title, string category, uint256 pricePerQuery, bytes32 schemaHash, bool verified, uint256 createdAt, uint256 totalQueries, uint256 totalRevenue))",
+  "function getDatasetByCid(string cid) external view returns (uint256)",
+  "function getOwnerDatasets(address owner) external view returns (uint256[])",
+  "function exists(uint256 datasetId) external view returns (bool)",
+  "function totalDatasets() external view returns (uint256)",
+  "function nextDatasetId() external view returns (uint256)",
+  "event DatasetRegistered(uint256 indexed datasetId, string cid, address indexed owner, string title, string category, uint256 pricePerQuery, uint256 timestamp)",
+  "event DatasetVerified(uint256 indexed datasetId, address indexed verifier, uint256 timestamp)",
+  "event QueryRecorded(uint256 indexed datasetId, uint256 revenue, uint256 timestamp)",
 ] as const;
 
 export const QUERY_MARKET_ABI = [
-  {
-    "name": "createQueryOrder",
-    "type": "function",
-    "inputs": [
-      {"name": "datasetId", "type": "uint256"},
-      {"name": "queryParams", "type": "bytes"},
-      {"name": "maxPrice", "type": "uint256"}
-    ],
-    "outputs": [{"name": "orderId", "type": "uint256"}]
-  },
-  {
-    "name": "executeQuery",
-    "type": "function",
-    "inputs": [
-      {"name": "orderId", "type": "uint256"},
-      {"name": "attestation", "type": "bytes"}
-    ]
-  },
-  {
-    "name": "getOrder",
-    "type": "function",
-    "inputs": [{"name": "orderId", "type": "uint256"}],
-    "outputs": [{"name": "order", "type": "tuple"}]
-  }
+  "function createOrder(uint256 datasetId, string queryType, bytes32 queryHash) external payable returns (uint256)",
+  "function markExecuting(uint256 orderId) external",
+  "function completeOrder(uint256 orderId, string resultCid, bytes32 resultHash) external",
+  "function cancelOrder(uint256 orderId) external",
+  "function failOrder(uint256 orderId, string reason) external",
+  "function setOperator(address newOperator) external",
+  "function getOrder(uint256 orderId) external view returns (tuple(uint256 id, uint256 datasetId, address buyer, string queryType, bytes32 queryHash, uint256 price, uint8 status, string resultCid, bytes32 resultHash, uint256 createdAt, uint256 completedAt))",
+  "function getBuyerOrders(address buyer) external view returns (uint256[])",
+  "function getDatasetOrders(uint256 datasetId) external view returns (uint256[])",
+  "function totalOrders() external view returns (uint256)",
+  "function totalVolume() external view returns (uint256)",
+  "event OrderCreated(uint256 indexed orderId, uint256 indexed datasetId, address indexed buyer, string queryType, uint256 price, uint256 timestamp)",
+  "event OrderCompleted(uint256 indexed orderId, string resultCid, bytes32 resultHash, uint256 timestamp)",
+  "event OrderCancelled(uint256 indexed orderId, address indexed buyer, uint256 refundAmount, uint256 timestamp)",
 ] as const;
 
-export const PROOF_MANAGER_ABI = [
-  {
-    "name": "submitProof",
-    "type": "function",
-    "inputs": [
-      {"name": "datasetId", "type": "uint256"},
-      {"name": "proof", "type": "bytes"},
-      {"name": "challenge", "type": "bytes32"}
-    ]
-  },
-  {
-    "name": "verifyProof",
-    "type": "function",
-    "inputs": [
-      {"name": "datasetId", "type": "uint256"},
-      {"name": "proof", "type": "bytes"}
-    ],
-    "outputs": [{"name": "valid", "type": "bool"}]
-  },
-  {
-    "name": "getDatasetHealth",
-    "type": "function",
-    "inputs": [{"name": "datasetId", "type": "uint256"}],
-    "outputs": [{"name": "healthScore", "type": "uint256"}]
-  }
-] as const;
+// ---------------------------------------------------------------------------
+// Contract addresses from environment variables
+// ---------------------------------------------------------------------------
 
-// Contract addresses (these would be deployed addresses)
-export const CONTRACT_ADDRESSES = {
-  DATASET_REGISTRY: "0x1234567890123456789012345678901234567890",
-  QUERY_MARKET: "0x2345678901234567890123456789012345678901",
-  PROOF_MANAGER: "0x3456789012345678901234567890123456789012"
-} as const;
-
-// Utility functions for contract interactions
-//
-// In demo mode (no real blockchain), the class delegates to the SQLite-backed
-// store so that callers get realistic-looking data without a live contract.
-// We use a lazy-import helper to avoid a circular dependency with store.ts
-// (which imports types from this file).
-export class DataCloudContracts {
-  private provider: unknown;
-  private signer: unknown;
-  /** When true the class returns data from the SQLite store. */
-  private demoMode: boolean;
-
-  constructor(provider: unknown, signer?: unknown) {
-    this.provider = provider;
-    this.signer = signer;
-    // If the provider is falsy (null / undefined) we operate in demo mode.
-    this.demoMode = !provider;
-  }
-
-  /** Lazily import the store to avoid circular deps at module-parse time. */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async store(): Promise<any> {
-    return await import('@/lib/store');
-  }
-
-  // ---- Dataset Registry methods ------------------------------------------
-
-  async registerDataset(
-    dataset: Omit<Dataset, 'id' | 'verified' | 'createdAt' | 'totalQueries' | 'revenue'>,
-  ): Promise<string> {
-    if (this.demoMode) {
-      const store = await this.store();
-      const created = store.addDataset(dataset);
-      return created.id;
-    }
-    // In production this would call the on-chain registerDataset function
-    console.log('Registering dataset on-chain:', dataset.title);
-    return 'mock-dataset-id';
-  }
-
-  async getDataset(datasetId: string): Promise<Dataset | null> {
-    if (this.demoMode) {
-      const store = await this.store();
-      return store.getDatasetById(datasetId) ?? null;
-    }
-    // In production this would call the on-chain getDataset function
-    return null;
-  }
-
-  async updateDataset(datasetId: string, updates: Partial<Dataset>): Promise<boolean> {
-    if (this.demoMode) {
-      const store = await this.store();
-      return store.updateDataset(datasetId, updates);
-    }
-    console.log('Updating dataset on-chain:', datasetId, updates);
-    return true;
-  }
-
-  // ---- Query Market methods ----------------------------------------------
-
-  async createQueryOrder(
-    datasetId: string,
-    queryType: QueryType,
-    parameters: Record<string, unknown>,
-    maxPrice: string,
-  ): Promise<string> {
-    if (this.demoMode) {
-      const store = await this.store();
-      const order = store.addQuery({
-        datasetId,
-        buyer: (this.signer as string) || '0x0000000000000000000000000000000000000000',
-        queryType,
-        parameters,
-        price: maxPrice,
-      });
-      return order.id;
-    }
-    console.log('Creating query order on-chain:', { datasetId, queryType, parameters, maxPrice });
-    return 'mock-order-id';
-  }
-
-  async getQueryOrder(orderId: string): Promise<QueryOrder | null> {
-    if (this.demoMode) {
-      const store = await this.store();
-      return store.getQueryById(orderId) ?? null;
-    }
-    return null;
-  }
-
-  async executeQuery(orderId: string, attestation: QueryAttestation): Promise<boolean> {
-    if (this.demoMode) {
-      const store = await this.store();
-      const updated = store.updateQueryStatus(orderId, OrderStatus.COMPLETED, {
-        executedAt: attestation.timestamp,
-        resultCid: `QmResult${attestation.timestamp}`,
-        attestation,
-      });
-      return !!updated;
-    }
-    console.log('Executing query on-chain:', orderId, attestation);
-    return true;
-  }
-
-  // ---- Proof Manager methods ---------------------------------------------
-
-  async submitProof(datasetId: string, proof: string, challenge: string): Promise<boolean> {
-    if (this.demoMode) {
-      // Simulate proof acceptance: update the dataset's lastProofAt timestamp
-      const store = await this.store();
-      return store.updateDataset(datasetId, { lastProofAt: Date.now() });
-    }
-    console.log('Submitting proof on-chain:', { datasetId, proof, challenge });
-    return true;
-  }
-
-  async verifyProof(datasetId: string, proof: string): Promise<boolean> {
-    if (this.demoMode) {
-      // In demo mode proofs are always valid when the dataset exists
-      const store = await this.store();
-      return !!store.getDatasetById(datasetId);
-    }
-    console.log('Verifying proof on-chain:', { datasetId, proof });
-    return true;
-  }
-
-  async getDatasetHealth(datasetId: string): Promise<number> {
-    if (this.demoMode) {
-      const store = await this.store();
-      const dataset = store.getDatasetById(datasetId);
-      if (!dataset) return 0;
-      // Derive a deterministic health score from the dataset's proof
-      // freshness: 100 if proof < 1 h old, decaying linearly to 0 at 24 h.
-      const hoursSinceProof = (Date.now() - dataset.lastProofAt) / 3600000;
-      return Math.max(0, Math.min(100, Math.round(100 - (hoursSinceProof / 24) * 100)));
-    }
-    // In production this would query the on-chain health score
-    return Math.floor(Math.random() * 100);
-  }
+export function getContractAddresses() {
+  return {
+    DATASET_REGISTRY: process.env.DATASET_REGISTRY_ADDRESS || '',
+    QUERY_MARKET: process.env.QUERY_MARKET_ADDRESS || '',
+  };
 }
 
+/**
+ * Check if smart contracts are configured (env vars set)
+ */
+export function areContractsConfigured(): boolean {
+  return !!(process.env.DATASET_REGISTRY_ADDRESS && process.env.QUERY_MARKET_ADDRESS);
+}
+
+// ---------------------------------------------------------------------------
+// On-Chain Contract Interactions via ethers.js
+// ---------------------------------------------------------------------------
+
+/**
+ * Register a dataset on-chain via DatasetRegistry contract
+ */
+export async function registerDatasetOnChain(
+  cid: string,
+  title: string,
+  category: string,
+  pricePerQueryWei: string,
+  schemaHash: string,
+): Promise<{ transactionHash: string; datasetId: string }> {
+  const addresses = getContractAddresses();
+  if (!addresses.DATASET_REGISTRY || !process.env.WALLET_PRIVATE_KEY) {
+    throw new Error(
+      'Smart contracts not configured. Set DATASET_REGISTRY_ADDRESS and WALLET_PRIVATE_KEY.',
+    );
+  }
+
+  const { ethers } = await import('ethers');
+  const provider = new ethers.JsonRpcProvider(
+    process.env.FILECOIN_RPC_URL || 'https://api.calibration.node.glif.io/rpc/v1',
+  );
+  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+  const contract = new ethers.Contract(
+    addresses.DATASET_REGISTRY,
+    DATASET_REGISTRY_ABI,
+    wallet,
+  );
+
+  const schemaBytes32 = ethers.zeroPadValue(
+    ethers.toBeArray(ethers.keccak256(ethers.toUtf8Bytes(schemaHash || 'default'))),
+    32,
+  );
+
+  const tx = await contract.registerDataset(
+    cid,
+    title,
+    category,
+    ethers.parseEther(pricePerQueryWei),
+    schemaBytes32,
+  );
+  const receipt = await tx.wait();
+
+  // Parse the DatasetRegistered event to get the datasetId
+  const event = receipt.logs
+    .map((log: { topics: string[]; data: string }) => {
+      try {
+        return contract.interface.parseLog(log);
+      } catch {
+        return null;
+      }
+    })
+    .find((e: { name: string } | null) => e?.name === 'DatasetRegistered');
+
+  const datasetId = event ? event.args.datasetId.toString() : '0';
+
+  return {
+    transactionHash: receipt.hash,
+    datasetId,
+  };
+}
+
+/**
+ * Create a query order on-chain (with tFIL payment)
+ * This is called server-side using the operator wallet.
+ * In a production system, the buyer would call this from their wallet.
+ */
+export async function createOrderOnChain(
+  datasetId: string,
+  queryType: string,
+  queryHash: string,
+  priceWei: string,
+): Promise<{ transactionHash: string; orderId: string }> {
+  const addresses = getContractAddresses();
+  if (!addresses.QUERY_MARKET || !process.env.WALLET_PRIVATE_KEY) {
+    throw new Error(
+      'Smart contracts not configured. Set QUERY_MARKET_ADDRESS and WALLET_PRIVATE_KEY.',
+    );
+  }
+
+  const { ethers } = await import('ethers');
+  const provider = new ethers.JsonRpcProvider(
+    process.env.FILECOIN_RPC_URL || 'https://api.calibration.node.glif.io/rpc/v1',
+  );
+  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+  const contract = new ethers.Contract(addresses.QUERY_MARKET, QUERY_MARKET_ABI, wallet);
+
+  const queryBytes32 = ethers.keccak256(ethers.toUtf8Bytes(queryHash));
+
+  const tx = await contract.createOrder(datasetId, queryType, queryBytes32, {
+    value: ethers.parseEther(priceWei),
+  });
+  const receipt = await tx.wait();
+
+  const event = receipt.logs
+    .map((log: { topics: string[]; data: string }) => {
+      try {
+        return contract.interface.parseLog(log);
+      } catch {
+        return null;
+      }
+    })
+    .find((e: { name: string } | null) => e?.name === 'OrderCreated');
+
+  const orderId = event ? event.args.orderId.toString() : '0';
+
+  return {
+    transactionHash: receipt.hash,
+    orderId,
+  };
+}
+
+/**
+ * Complete a query order on-chain (release payment to dataset owner)
+ */
+export async function completeOrderOnChain(
+  orderId: string,
+  resultCid: string,
+  resultHash: string,
+): Promise<{ transactionHash: string }> {
+  const addresses = getContractAddresses();
+  if (!addresses.QUERY_MARKET || !process.env.WALLET_PRIVATE_KEY) {
+    throw new Error(
+      'Smart contracts not configured. Set QUERY_MARKET_ADDRESS and WALLET_PRIVATE_KEY.',
+    );
+  }
+
+  const { ethers } = await import('ethers');
+  const provider = new ethers.JsonRpcProvider(
+    process.env.FILECOIN_RPC_URL || 'https://api.calibration.node.glif.io/rpc/v1',
+  );
+  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+  const contract = new ethers.Contract(addresses.QUERY_MARKET, QUERY_MARKET_ABI, wallet);
+
+  const resultBytes32 = ethers.keccak256(ethers.toUtf8Bytes(resultHash));
+
+  const tx = await contract.completeOrder(orderId, resultCid, resultBytes32);
+  const receipt = await tx.wait();
+
+  return { transactionHash: receipt.hash };
+}
+
+/**
+ * Fail a query order on-chain (refund buyer)
+ */
+export async function failOrderOnChain(
+  orderId: string,
+  reason: string,
+): Promise<{ transactionHash: string }> {
+  const addresses = getContractAddresses();
+  if (!addresses.QUERY_MARKET || !process.env.WALLET_PRIVATE_KEY) {
+    throw new Error('Smart contracts not configured.');
+  }
+
+  const { ethers } = await import('ethers');
+  const provider = new ethers.JsonRpcProvider(
+    process.env.FILECOIN_RPC_URL || 'https://api.calibration.node.glif.io/rpc/v1',
+  );
+  const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
+  const contract = new ethers.Contract(addresses.QUERY_MARKET, QUERY_MARKET_ABI, wallet);
+
+  const tx = await contract.failOrder(orderId, reason);
+  const receipt = await tx.wait();
+
+  return { transactionHash: receipt.hash };
+}
+
+// ---------------------------------------------------------------------------
 // Helper functions
+// ---------------------------------------------------------------------------
+
 export function calculateQueryPrice(basePrice: string, queryType: QueryType, datasetSize: number): string {
   const base = parseFloat(basePrice);
   let multiplier = 1;
@@ -328,9 +326,9 @@ export function calculateQueryPrice(basePrice: string, queryType: QueryType, dat
 export function formatFIL(amount: string): string {
   const num = parseFloat(amount);
   if (num < 0.001) {
-    return `${(num * 1000).toFixed(2)} mFIL`;
+    return `${(num * 1000).toFixed(2)} mtFIL`;
   }
-  return `${num.toFixed(4)} FIL`;
+  return `${num.toFixed(4)} tFIL`;
 }
 
 export function validateQueryParameters(queryType: QueryType, parameters: Record<string, unknown>): boolean {
@@ -340,7 +338,7 @@ export function validateQueryParameters(queryType: QueryType, parameters: Record
     case QueryType.ML_TRAINING:
       return !!(parameters.modelType && parameters.targetVariable);
     case QueryType.ANALYTICS:
-      return !!(parameters.analysisType);
+      return !!(parameters.analysisType || parameters.type);
     default:
       return true;
   }

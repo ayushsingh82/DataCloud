@@ -50,7 +50,7 @@ Browse available datasets:
 - **E-commerce Behavior Analytics** (1.8 GB) — Customer behavior, recommendations
 
 Each dataset shows:
-- Category, size, price per query
+- Category, size, price per query.
 - Allowed query types (aggregation, ML training, analytics, cohort)
 - Verification status (PDP-verified or not)
 - Total queries executed and revenue earned

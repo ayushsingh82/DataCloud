@@ -12,6 +12,8 @@ import {
   getCategoryBreakdown,
   getActivityLog,
 } from '@/lib/store';
+import { areContractsConfigured } from '@/lib/contracts';
+import { isLighthouseConfigured } from '@/lib/filecoin-service';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ---------------------------------------------------------------------------
@@ -73,7 +75,7 @@ export async function GET(request: NextRequest) {
         id: d.id,
         title: d.title,
         timestamp: d.createdAt,
-        details: `New dataset listed in ${d.category} (${d.price} FIL)`,
+        details: `New dataset listed in ${d.category} (${d.price} tFIL)`,
       });
     }
 
@@ -83,7 +85,7 @@ export async function GET(request: NextRequest) {
         id: q.id,
         title: `Query #${q.id}`,
         timestamp: q.createdAt,
-        details: `${q.queryType} query on dataset #${q.datasetId} (${q.price} FIL)`,
+        details: `${q.queryType} query on dataset #${q.datasetId} (${q.price} tFIL)`,
       });
       if (q.executedAt) {
         activity.push({
@@ -115,6 +117,10 @@ export async function GET(request: NextRequest) {
         categories,
         recentActivity,
         activityLog: activityRows,
+        integration: {
+          lighthouse: isLighthouseConfigured(),
+          contracts: areContractsConfigured(),
+        },
       },
     });
   } catch (error) {

@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { QueryType } from '@/lib/contracts';
+import { QueryType, areContractsConfigured, registerDatasetOnChain } from '@/lib/contracts';
 import {
   getDatasets,
   getDatasetById,
   addDataset,
   deleteDataset,
+  updateDataset,
+  insertDataRows,
 } from '@/lib/store';
+import { uploadToLighthouse, isLighthouseConfigured } from '@/lib/filecoin-service';
+import { parseDataFile, clearDataCache } from '@/lib/dataset-data';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ---------------------------------------------------------------------------
@@ -28,12 +32,11 @@ function rateLimitGuard(request: NextRequest) {
       },
     );
   }
-  return null; // allowed
+  return null;
 }
 
 // ---------------------------------------------------------------------------
 // GET /api/datasets
-// Supports query params: category, search, verified, id, limit, offset
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
@@ -49,7 +52,6 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Validate pagination params
     if (isNaN(limit) || limit < 1 || limit > 100) {
       return NextResponse.json(
         { success: false, error: 'limit must be between 1 and 100' },
@@ -63,7 +65,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Single-dataset lookup by id
     if (id) {
       const dataset = getDatasetById(id);
       if (!dataset) {
@@ -77,7 +78,6 @@ export async function GET(request: NextRequest) {
 
     let filteredDatasets = getDatasets();
 
-    // Apply filters
     if (category && category !== 'All') {
       filteredDatasets = filteredDatasets.filter(
         (dataset) => dataset.category.toLowerCase() === category.toLowerCase(),
@@ -100,18 +100,16 @@ export async function GET(request: NextRequest) {
       filteredDatasets = filteredDatasets.filter((dataset) => !dataset.verified);
     }
 
-    // Apply pagination
     const total = filteredDatasets.length;
     const paginatedDatasets = filteredDatasets.slice(offset, offset + limit);
 
     return NextResponse.json({
       success: true,
       data: paginatedDatasets,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total,
+      pagination: { total, limit, offset, hasMore: offset + limit < total },
+      integration: {
+        lighthouse: isLighthouseConfigured(),
+        contracts: areContractsConfigured(),
       },
     });
   } catch (error) {
@@ -125,7 +123,7 @@ export async function GET(request: NextRequest) {
 
 // ---------------------------------------------------------------------------
 // POST /api/datasets
-// Creates a new dataset in the store.
+// Accepts multipart/form-data with a file upload, or JSON for metadata-only.
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
@@ -133,86 +131,12 @@ export async function POST(request: NextRequest) {
   if (blocked) return blocked;
 
   try {
-    let body: Record<string, unknown>;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { success: false, error: 'Invalid JSON body' },
-        { status: 400 },
-      );
+    const contentType = request.headers.get('content-type') || '';
+
+    if (contentType.includes('multipart/form-data')) {
+      return handleFileUpload(request);
     }
-
-    // Validate required fields
-    const requiredFields = ['title', 'description', 'category', 'price'];
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        return NextResponse.json(
-          { success: false, error: `Missing required field: ${field}` },
-          { status: 400 },
-        );
-      }
-    }
-
-    // Validate title length
-    if (typeof body.title !== 'string' || body.title.trim().length < 3) {
-      return NextResponse.json(
-        { success: false, error: 'Title must be at least 3 characters' },
-        { status: 400 },
-      );
-    }
-
-    // Validate price is a positive number
-    const priceNum = parseFloat(body.price as string);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      return NextResponse.json(
-        { success: false, error: 'Price must be a positive number' },
-        { status: 400 },
-      );
-    }
-
-    // Validate allowedQueries if provided
-    if (body.allowedQueries) {
-      if (!Array.isArray(body.allowedQueries)) {
-        return NextResponse.json(
-          { success: false, error: 'allowedQueries must be an array' },
-          { status: 400 },
-        );
-      }
-      const validTypes = Object.values(QueryType) as string[];
-      for (const qt of body.allowedQueries as string[]) {
-        if (!validTypes.includes(qt)) {
-          return NextResponse.json(
-            { success: false, error: `Invalid query type: ${qt}` },
-            { status: 400 },
-          );
-        }
-      }
-    }
-
-    // Create new dataset via the store
-    const newDataset = addDataset({
-      cid: (body.cid as string) || undefined,
-      owner: (body.owner as string) || '0x0000000000000000000000000000000000000000',
-      title: (body.title as string).trim(),
-      description: (body.description as string).trim(),
-      category: body.category as string,
-      schemaHash: (body.schemaHash as string) || '0x0000000000000000',
-      size: (body.size as number) || 0,
-      price: body.price as string,
-      allowedQueries: (body.allowedQueries as QueryType[]) || [QueryType.AGGREGATION],
-      pdpParams: (body.pdpParams as { challengeInterval: number; proofTimeout: number; slashingAmount: string; requiredProofs: number }) || {
-        challengeInterval: 3600,
-        proofTimeout: 300,
-        slashingAmount: '0.1',
-        requiredProofs: 24,
-      },
-    });
-
-    return NextResponse.json(
-      { success: true, data: newDataset },
-      { status: 201 },
-    );
+    return handleJsonCreate(request);
   } catch (error) {
     console.error('Error creating dataset:', error);
     return NextResponse.json(
@@ -222,9 +146,258 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * Handle file upload: parse CSV/JSON, upload to Lighthouse, register on-chain
+ */
+async function handleFileUpload(request: NextRequest) {
+  const formData = await request.formData();
+  const file = formData.get('file') as File | null;
+  const title = formData.get('title') as string;
+  const description = formData.get('description') as string;
+  const category = formData.get('category') as string;
+  const price = formData.get('price') as string;
+  const owner = formData.get('owner') as string;
+  const allowedQueriesRaw = formData.get('allowedQueries') as string;
+
+  // Validate required fields
+  if (!file) {
+    return NextResponse.json(
+      { success: false, error: 'File is required. Upload a CSV or JSON dataset file.' },
+      { status: 400 },
+    );
+  }
+  if (!title || title.trim().length < 3) {
+    return NextResponse.json(
+      { success: false, error: 'Title must be at least 3 characters' },
+      { status: 400 },
+    );
+  }
+  if (!description) {
+    return NextResponse.json(
+      { success: false, error: 'Description is required' },
+      { status: 400 },
+    );
+  }
+  if (!category) {
+    return NextResponse.json(
+      { success: false, error: 'Category is required' },
+      { status: 400 },
+    );
+  }
+  const priceNum = parseFloat(price);
+  if (isNaN(priceNum) || priceNum <= 0) {
+    return NextResponse.json(
+      { success: false, error: 'Price must be a positive number' },
+      { status: 400 },
+    );
+  }
+
+  const allowedQueries: QueryType[] = allowedQueriesRaw
+    ? JSON.parse(allowedQueriesRaw)
+    : [QueryType.AGGREGATION];
+
+  // Validate file type
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
+    return NextResponse.json(
+      { success: false, error: 'Only CSV and JSON files are supported' },
+      { status: 400 },
+    );
+  }
+
+  // Read and parse the file
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
+  const fileContent = fileBuffer.toString('utf-8');
+
+  let dataRows: Record<string, string | number>[];
+  try {
+    dataRows = parseDataFile(fileContent, file.name);
+  } catch (err) {
+    return NextResponse.json(
+      { success: false, error: `Failed to parse file: ${(err as Error).message}` },
+      { status: 400 },
+    );
+  }
+
+  if (dataRows.length === 0) {
+    return NextResponse.json(
+      { success: false, error: 'File contains no data rows' },
+      { status: 400 },
+    );
+  }
+
+  // Upload to Lighthouse (IPFS/Filecoin)
+  let cid = '';
+  if (isLighthouseConfigured()) {
+    try {
+      const uploadResult = await uploadToLighthouse(fileBuffer, file.name);
+      cid = uploadResult.cid;
+    } catch (err) {
+      return NextResponse.json(
+        { success: false, error: `Lighthouse upload failed: ${(err as Error).message}` },
+        { status: 502 },
+      );
+    }
+  } else {
+    return NextResponse.json(
+      { success: false, error: 'LIGHTHOUSE_API_KEY is not configured. Cannot upload files without Lighthouse.' },
+      { status: 503 },
+    );
+  }
+
+  // Store dataset metadata in SQLite
+  const format = fileName.endsWith('.json') ? 'json' : 'csv';
+  const newDataset = addDataset({
+    cid,
+    owner: owner || '0x0000000000000000000000000000000000000000',
+    title: title.trim(),
+    description: description.trim(),
+    category,
+    schemaHash: '',
+    size: file.size,
+    price,
+    allowedQueries,
+    pdpParams: {
+      challengeInterval: 3600,
+      proofTimeout: 300,
+      slashingAmount: '0.1',
+      requiredProofs: 24,
+    },
+    records: dataRows.length,
+    format,
+  });
+
+  // Store the actual data rows for query computation
+  insertDataRows(Number(newDataset.id), dataRows);
+  clearDataCache(newDataset.id);
+
+  // Register on-chain if smart contracts are configured
+  let txHash = '';
+  let onChainId = '';
+  if (areContractsConfigured()) {
+    try {
+      const onChainResult = await registerDatasetOnChain(
+        cid,
+        title.trim(),
+        category,
+        price,
+        `${file.name}-${file.size}`,
+      );
+      txHash = onChainResult.transactionHash;
+      onChainId = onChainResult.datasetId;
+      updateDataset(newDataset.id, { txHash, onChainId } as never);
+    } catch (err) {
+      console.warn('On-chain registration failed (dataset saved locally):', (err as Error).message);
+    }
+  }
+
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        ...newDataset,
+        records: dataRows.length,
+        format,
+        txHash,
+        onChainId,
+      },
+      upload: {
+        cid,
+        lighthouse: true,
+        onChain: !!txHash,
+        txHash: txHash || undefined,
+        onChainId: onChainId || undefined,
+        rowsParsed: dataRows.length,
+        columns: Object.keys(dataRows[0] || {}),
+      },
+    },
+    { status: 201 },
+  );
+}
+
+/**
+ * Handle JSON body create (metadata only, no file — for backward compatibility)
+ */
+async function handleJsonCreate(request: NextRequest) {
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'Invalid JSON body' },
+      { status: 400 },
+    );
+  }
+
+  const requiredFields = ['title', 'description', 'category', 'price'];
+  for (const field of requiredFields) {
+    if (!body[field]) {
+      return NextResponse.json(
+        { success: false, error: `Missing required field: ${field}` },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (typeof body.title !== 'string' || body.title.trim().length < 3) {
+    return NextResponse.json(
+      { success: false, error: 'Title must be at least 3 characters' },
+      { status: 400 },
+    );
+  }
+
+  const priceNum = parseFloat(body.price as string);
+  if (isNaN(priceNum) || priceNum <= 0) {
+    return NextResponse.json(
+      { success: false, error: 'Price must be a positive number' },
+      { status: 400 },
+    );
+  }
+
+  if (body.allowedQueries) {
+    if (!Array.isArray(body.allowedQueries)) {
+      return NextResponse.json(
+        { success: false, error: 'allowedQueries must be an array' },
+        { status: 400 },
+      );
+    }
+    const validTypes = Object.values(QueryType) as string[];
+    for (const qt of body.allowedQueries as string[]) {
+      if (!validTypes.includes(qt)) {
+        return NextResponse.json(
+          { success: false, error: `Invalid query type: ${qt}` },
+          { status: 400 },
+        );
+      }
+    }
+  }
+
+  const newDataset = addDataset({
+    cid: (body.cid as string) || '',
+    owner: (body.owner as string) || '0x0000000000000000000000000000000000000000',
+    title: (body.title as string).trim(),
+    description: (body.description as string).trim(),
+    category: body.category as string,
+    schemaHash: (body.schemaHash as string) || '',
+    size: (body.size as number) || 0,
+    price: body.price as string,
+    allowedQueries: (body.allowedQueries as QueryType[]) || [QueryType.AGGREGATION],
+    pdpParams: (body.pdpParams as { challengeInterval: number; proofTimeout: number; slashingAmount: string; requiredProofs: number }) || {
+      challengeInterval: 3600,
+      proofTimeout: 300,
+      slashingAmount: '0.1',
+      requiredProofs: 24,
+    },
+  });
+
+  return NextResponse.json(
+    { success: true, data: newDataset },
+    { status: 201 },
+  );
+}
+
 // ---------------------------------------------------------------------------
 // DELETE /api/datasets?id=<id>
-// Removes a dataset from the store.
 // ---------------------------------------------------------------------------
 
 export async function DELETE(request: NextRequest) {
@@ -249,6 +422,8 @@ export async function DELETE(request: NextRequest) {
         { status: 404 },
       );
     }
+
+    clearDataCache(id);
 
     return NextResponse.json({ success: true, message: 'Dataset deleted' });
   } catch (error) {

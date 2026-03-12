@@ -14,7 +14,7 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: 'DataCloud',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
   chains: [filecoinCalibration],

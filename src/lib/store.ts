@@ -6,11 +6,8 @@ import { Dataset, QueryOrder, QueryType, OrderStatus } from '@/lib/contracts';
 // ---------------------------------------------------------------------------
 // SQLite-backed persistent store
 // Database file lives at <project-root>/data/datacloud.db and is auto-created
-// on first run. The module exports the same public interface as the previous
-// in-memory store so that API routes continue to work without changes.
+// on first run. No seed data — the database starts empty.
 // ---------------------------------------------------------------------------
-
-// ---- Database initialisation -----------------------------------------------
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_PATH = path.join(DATA_DIR, 'datacloud.db');
@@ -56,6 +53,8 @@ function getDb(): Database.Database {
       pdp_params      TEXT    NOT NULL DEFAULT '{}',
       total_queries   INTEGER NOT NULL DEFAULT 0,
       total_revenue   TEXT    NOT NULL DEFAULT '0',
+      tx_hash         TEXT    NOT NULL DEFAULT '',
+      on_chain_id     TEXT    NOT NULL DEFAULT '',
       created_at      INTEGER NOT NULL DEFAULT 0,
       updated_at      INTEGER NOT NULL DEFAULT 0
     );
@@ -71,6 +70,8 @@ function getDb(): Database.Database {
       result          TEXT    NOT NULL DEFAULT '{}',
       result_cid      TEXT    NOT NULL DEFAULT '',
       attestation     TEXT    NOT NULL DEFAULT '{}',
+      tx_hash         TEXT    NOT NULL DEFAULT '',
+      on_chain_id     TEXT    NOT NULL DEFAULT '',
       created_at      INTEGER NOT NULL DEFAULT 0,
       updated_at      INTEGER NOT NULL DEFAULT 0,
       completed_at    INTEGER NOT NULL DEFAULT 0
@@ -85,233 +86,32 @@ function getDb(): Database.Database {
       message         TEXT    NOT NULL DEFAULT '',
       created_at      INTEGER NOT NULL DEFAULT 0
     );
+
+    CREATE TABLE IF NOT EXISTS data_rows (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      dataset_id      INTEGER NOT NULL,
+      row_data        TEXT    NOT NULL DEFAULT '{}',
+      FOREIGN KEY (dataset_id) REFERENCES datasets(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_data_rows_dataset ON data_rows(dataset_id);
   `);
 
-  // ---- Seed data on first run --------------------------------------------
-
-  const count = _db.prepare('SELECT COUNT(*) AS cnt FROM datasets').get() as { cnt: number };
-  if (count.cnt === 0) {
-    seedData(_db);
-  }
+  // Add tx_hash and on_chain_id columns if they don't exist (migration)
+  try {
+    _db.exec('ALTER TABLE datasets ADD COLUMN tx_hash TEXT NOT NULL DEFAULT ""');
+  } catch { /* column already exists */ }
+  try {
+    _db.exec('ALTER TABLE datasets ADD COLUMN on_chain_id TEXT NOT NULL DEFAULT ""');
+  } catch { /* column already exists */ }
+  try {
+    _db.exec('ALTER TABLE query_orders ADD COLUMN tx_hash TEXT NOT NULL DEFAULT ""');
+  } catch { /* column already exists */ }
+  try {
+    _db.exec('ALTER TABLE query_orders ADD COLUMN on_chain_id TEXT NOT NULL DEFAULT ""');
+  } catch { /* column already exists */ }
 
   return _db;
-}
-
-// ---- Seed helper -----------------------------------------------------------
-
-function seedData(db: Database.Database) {
-  const now = Date.now();
-
-  const insertDataset = db.prepare(`
-    INSERT INTO datasets (
-      title, description, category, owner, price, size, records, format,
-      allowed_queries, verified, pdp_enabled, pdp_frequency, pdp_last_verified,
-      ipfs_cid, encryption, schema_hash, pdp_params,
-      total_queries, total_revenue, created_at, updated_at
-    ) VALUES (
-      @title, @description, @category, @owner, @price, @size, @records, @format,
-      @allowed_queries, @verified, @pdp_enabled, @pdp_frequency, @pdp_last_verified,
-      @ipfs_cid, @encryption, @schema_hash, @pdp_params,
-      @total_queries, @total_revenue, @created_at, @updated_at
-    )
-  `);
-
-  const insertOrder = db.prepare(`
-    INSERT INTO query_orders (
-      dataset_id, buyer, query_type, parameters, price, status,
-      result, result_cid, attestation, created_at, updated_at, completed_at
-    ) VALUES (
-      @dataset_id, @buyer, @query_type, @parameters, @price, @status,
-      @result, @result_cid, @attestation, @created_at, @updated_at, @completed_at
-    )
-  `);
-
-  const insertActivity = db.prepare(`
-    INSERT INTO activity_log (type, dataset_id, order_id, actor, message, created_at)
-    VALUES (@type, @dataset_id, @order_id, @actor, @message, @created_at)
-  `);
-
-  const seedTx = db.transaction(() => {
-    // Dataset 1 - Financial Transactions
-    insertDataset.run({
-      title: 'Financial Transactions Dataset',
-      description: 'Anonymized financial transaction data with demographic insights. Perfect for fraud detection and spending pattern analysis.',
-      category: 'Finance',
-      owner: '0x742d35Cc6634C0532925a3b8D0c7b3a7D5d4c6f8',
-      price: '0.05',
-      size: 2469606195,
-      records: 0,
-      format: 'parquet',
-      allowed_queries: JSON.stringify([QueryType.AGGREGATION, QueryType.ANALYTICS, QueryType.ML_TRAINING]),
-      verified: 1,
-      pdp_enabled: 1,
-      pdp_frequency: 3600,
-      pdp_last_verified: now - 3600000,
-      ipfs_cid: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
-      encryption: 'AES-256-GCM',
-      schema_hash: '0x1234567890abcdef',
-      pdp_params: JSON.stringify({ challengeInterval: 3600, proofTimeout: 300, slashingAmount: '0.1', requiredProofs: 24 }),
-      total_queries: 1247,
-      total_revenue: '62.35',
-      created_at: now - 172800000,
-      updated_at: now - 172800000,
-    });
-
-    // Dataset 2 - Healthcare Research
-    insertDataset.run({
-      title: 'Healthcare Research Data',
-      description: 'De-identified patient data for medical research and drug discovery. Includes lab results, treatment outcomes, and demographic data.',
-      category: 'Healthcare',
-      owner: '0x8ba1f109551bD432803012645Hac136c1c5e0',
-      price: '0.12',
-      size: 6120000000,
-      records: 0,
-      format: 'parquet',
-      allowed_queries: JSON.stringify([QueryType.AGGREGATION, QueryType.ANALYTICS, QueryType.ML_TRAINING, QueryType.CORRELATION]),
-      verified: 1,
-      pdp_enabled: 1,
-      pdp_frequency: 1800,
-      pdp_last_verified: now - 1800000,
-      ipfs_cid: 'QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco',
-      encryption: 'AES-256-GCM',
-      schema_hash: '0xabcdef1234567890',
-      pdp_params: JSON.stringify({ challengeInterval: 1800, proofTimeout: 300, slashingAmount: '0.2', requiredProofs: 48 }),
-      total_queries: 892,
-      total_revenue: '107.04',
-      created_at: now - 604800000,
-      updated_at: now - 604800000,
-    });
-
-    // Dataset 3 - E-commerce Behavior
-    insertDataset.run({
-      title: 'E-commerce Behavior Analytics',
-      description: 'Customer behavior patterns, purchase history, and recommendation engine training data from major e-commerce platforms.',
-      category: 'E-commerce',
-      owner: '0x9f4f2726179a224501d762422c946590d91',
-      price: '0.08',
-      size: 1932735284,
-      records: 0,
-      format: 'parquet',
-      allowed_queries: JSON.stringify([QueryType.AGGREGATION, QueryType.ANALYTICS, QueryType.COHORT]),
-      verified: 0,
-      pdp_enabled: 1,
-      pdp_frequency: 7200,
-      pdp_last_verified: now - 7200000,
-      ipfs_cid: 'QmNLei78zWmzUdbeRB3CiUfAizWUrbeeZh5K1rhAQKCh51',
-      encryption: 'AES-256-GCM',
-      schema_hash: '0x567890abcdef1234',
-      pdp_params: JSON.stringify({ challengeInterval: 7200, proofTimeout: 300, slashingAmount: '0.15', requiredProofs: 12 }),
-      total_queries: 2156,
-      total_revenue: '172.48',
-      created_at: now - 259200000,
-      updated_at: now - 259200000,
-    });
-
-    // Seed orders
-    insertOrder.run({
-      dataset_id: '1',
-      buyer: '0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5',
-      query_type: QueryType.AGGREGATION,
-      parameters: JSON.stringify({ function: 'AVG', column: 'transaction_amount', groupBy: 'age_group' }),
-      price: '0.05',
-      status: OrderStatus.COMPLETED,
-      result: '{}',
-      result_cid: 'QmResult1234567890abcdef',
-      attestation: JSON.stringify({
-        datasetId: '1',
-        queryHash: '0xquery123',
-        resultHash: '0xresult123',
-        workerId: 'worker-001',
-        timestamp: now - 3300000,
-        signature: '0xsignature123',
-      }),
-      created_at: now - 3600000,
-      updated_at: now - 3300000,
-      completed_at: now - 3300000,
-    });
-
-    insertOrder.run({
-      dataset_id: '2',
-      buyer: '0x742d35Cc6634C0532925a3b8D0c7b3a7D5d4c6f8',
-      query_type: QueryType.ML_TRAINING,
-      parameters: JSON.stringify({
-        modelType: 'logistic_regression',
-        targetVariable: 'treatment_success',
-        features: ['age', 'gender', 'medical_history', 'lab_values'],
-      }),
-      price: '0.18',
-      status: OrderStatus.EXECUTING,
-      result: '{}',
-      result_cid: '',
-      attestation: '{}',
-      created_at: now - 1800000,
-      updated_at: now - 1800000,
-      completed_at: 0,
-    });
-
-    insertOrder.run({
-      dataset_id: '3',
-      buyer: '0x8ba1f109551bD432803012645Hac136c1c5e0',
-      query_type: QueryType.COHORT,
-      parameters: JSON.stringify({
-        cohortDefinition: 'first_purchase',
-        timePeriod: 'monthly',
-        metric: 'retention_rate',
-      }),
-      price: '0.12',
-      status: OrderStatus.PENDING,
-      result: '{}',
-      result_cid: '',
-      attestation: '{}',
-      created_at: now - 600000,
-      updated_at: now - 600000,
-      completed_at: 0,
-    });
-
-    // Seed activity log
-    insertActivity.run({
-      type: 'dataset_created',
-      dataset_id: '1',
-      order_id: '',
-      actor: '0x742d35Cc6634C0532925a3b8D0c7b3a7D5d4c6f8',
-      message: 'New dataset listed: Financial Transactions Dataset',
-      created_at: now - 172800000,
-    });
-    insertActivity.run({
-      type: 'dataset_created',
-      dataset_id: '2',
-      order_id: '',
-      actor: '0x8ba1f109551bD432803012645Hac136c1c5e0',
-      message: 'New dataset listed: Healthcare Research Data',
-      created_at: now - 604800000,
-    });
-    insertActivity.run({
-      type: 'dataset_created',
-      dataset_id: '3',
-      order_id: '',
-      actor: '0x9f4f2726179a224501d762422c946590d91',
-      message: 'New dataset listed: E-commerce Behavior Analytics',
-      created_at: now - 259200000,
-    });
-    insertActivity.run({
-      type: 'query_created',
-      dataset_id: '1',
-      order_id: '1',
-      actor: '0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5',
-      message: 'Query order created for Financial Transactions Dataset',
-      created_at: now - 3600000,
-    });
-    insertActivity.run({
-      type: 'query_completed',
-      dataset_id: '1',
-      order_id: '1',
-      actor: 'worker-001',
-      message: 'Query completed for Financial Transactions Dataset',
-      created_at: now - 3300000,
-    });
-  });
-
-  seedTx();
 }
 
 // ---- Row <-> Domain object mappers ----------------------------------------
@@ -337,11 +137,13 @@ interface DatasetRow {
   pdp_params: string;
   total_queries: number;
   total_revenue: string;
+  tx_hash: string;
+  on_chain_id: string;
   created_at: number;
   updated_at: number;
 }
 
-function rowToDataset(row: DatasetRow): Dataset {
+function rowToDataset(row: DatasetRow): Dataset & { records: number; format: string; txHash: string; onChainId: string } {
   return {
     id: String(row.id),
     cid: row.ipfs_cid,
@@ -359,6 +161,10 @@ function rowToDataset(row: DatasetRow): Dataset {
     lastProofAt: row.pdp_last_verified,
     totalQueries: row.total_queries,
     revenue: row.total_revenue,
+    records: row.records,
+    format: row.format,
+    txHash: row.tx_hash,
+    onChainId: row.on_chain_id,
   };
 }
 
@@ -373,13 +179,15 @@ interface OrderRow {
   result: string;
   result_cid: string;
   attestation: string;
+  tx_hash: string;
+  on_chain_id: string;
   created_at: number;
   updated_at: number;
   completed_at: number;
 }
 
-function rowToOrder(row: OrderRow): QueryOrder {
-  const order: QueryOrder = {
+function rowToOrder(row: OrderRow): QueryOrder & { txHash: string; onChainId: string } {
+  const order: QueryOrder & { txHash: string; onChainId: string } = {
     id: String(row.id),
     datasetId: row.dataset_id,
     buyer: row.buyer,
@@ -388,6 +196,8 @@ function rowToOrder(row: OrderRow): QueryOrder {
     price: row.price,
     status: row.status as OrderStatus,
     createdAt: row.created_at,
+    txHash: row.tx_hash,
+    onChainId: row.on_chain_id,
   };
 
   if (row.completed_at > 0) {
@@ -395,6 +205,10 @@ function rowToOrder(row: OrderRow): QueryOrder {
   }
   if (row.result_cid) {
     order.resultCid = row.result_cid;
+  }
+  const resultData = JSON.parse(row.result);
+  if (resultData && Object.keys(resultData).length > 0) {
+    order.result = resultData;
   }
   const att = JSON.parse(row.attestation);
   if (att && att.datasetId) {
@@ -416,19 +230,8 @@ export interface ActivityEntry {
   createdAt: number;
 }
 
-// ---- CID helper -----------------------------------------------------------
-
-function generateCid(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = 'Qm';
-  for (let i = 0; i < 44; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
 // ---------------------------------------------------------------------------
-// Public API – same interface as the old in-memory store
+// Public API
 // ---------------------------------------------------------------------------
 
 // ---- Datasets -------------------------------------------------------------
@@ -448,23 +251,27 @@ export function getDatasetById(id: string): Dataset | undefined {
 export function addDataset(
   data: Omit<Dataset, 'id' | 'cid' | 'verified' | 'createdAt' | 'lastProofAt' | 'totalQueries' | 'revenue'> & {
     cid?: string;
+    records?: number;
+    format?: string;
+    txHash?: string;
+    onChainId?: string;
   },
 ): Dataset {
   const db = getDb();
   const now = Date.now();
-  const cid = data.cid || generateCid();
+  const cid = data.cid || '';
 
   const result = db.prepare(`
     INSERT INTO datasets (
       title, description, category, owner, price, size, records, format,
       allowed_queries, verified, pdp_enabled, pdp_frequency, pdp_last_verified,
       ipfs_cid, encryption, schema_hash, pdp_params,
-      total_queries, total_revenue, created_at, updated_at
+      total_queries, total_revenue, tx_hash, on_chain_id, created_at, updated_at
     ) VALUES (
       @title, @description, @category, @owner, @price, @size, @records, @format,
       @allowed_queries, @verified, @pdp_enabled, @pdp_frequency, @pdp_last_verified,
       @ipfs_cid, @encryption, @schema_hash, @pdp_params,
-      @total_queries, @total_revenue, @created_at, @updated_at
+      @total_queries, @total_revenue, @tx_hash, @on_chain_id, @created_at, @updated_at
     )
   `).run({
     title: data.title,
@@ -473,8 +280,8 @@ export function addDataset(
     owner: data.owner,
     price: data.price,
     size: data.size,
-    records: 0,
-    format: '',
+    records: data.records || 0,
+    format: data.format || '',
     allowed_queries: JSON.stringify(data.allowedQueries),
     verified: 0,
     pdp_enabled: data.pdpParams ? 1 : 0,
@@ -486,6 +293,8 @@ export function addDataset(
     pdp_params: JSON.stringify(data.pdpParams),
     total_queries: 0,
     total_revenue: '0',
+    tx_hash: data.txHash || '',
+    on_chain_id: data.onChainId || '',
     created_at: now,
     updated_at: now,
   });
@@ -518,14 +327,13 @@ export function deleteDataset(id: string): boolean {
   return result.changes > 0;
 }
 
-export function updateDataset(id: string, updates: Partial<Dataset>): boolean {
+export function updateDataset(id: string, updates: Partial<Dataset> & { txHash?: string; onChainId?: string }): boolean {
   const db = getDb();
   const existing = getDatasetById(id);
   if (!existing) return false;
 
   const now = Date.now();
 
-  // Build SET clauses dynamically based on what is provided
   const mapping: Record<string, unknown> = {};
   if (updates.title !== undefined) mapping.title = updates.title;
   if (updates.description !== undefined) mapping.description = updates.description;
@@ -541,6 +349,8 @@ export function updateDataset(id: string, updates: Partial<Dataset>): boolean {
   if (updates.totalQueries !== undefined) mapping.total_queries = updates.totalQueries;
   if (updates.revenue !== undefined) mapping.total_revenue = updates.revenue;
   if (updates.lastProofAt !== undefined) mapping.pdp_last_verified = updates.lastProofAt;
+  if (updates.txHash !== undefined) mapping.tx_hash = updates.txHash;
+  if (updates.onChainId !== undefined) mapping.on_chain_id = updates.onChainId;
 
   mapping.updated_at = now;
 
@@ -549,6 +359,54 @@ export function updateDataset(id: string, updates: Partial<Dataset>): boolean {
 
   db.prepare(`UPDATE datasets SET ${setClauses} WHERE id = @id`).run(params);
   return true;
+}
+
+// ---- Data rows (real uploaded data) ----------------------------------------
+
+export function insertDataRows(datasetId: number, rows: Record<string, unknown>[]): number {
+  const db = getDb();
+  const insert = db.prepare(
+    'INSERT INTO data_rows (dataset_id, row_data) VALUES (@dataset_id, @row_data)',
+  );
+
+  const insertMany = db.transaction((dataRows: Record<string, unknown>[]) => {
+    let count = 0;
+    for (const row of dataRows) {
+      insert.run({
+        dataset_id: datasetId,
+        row_data: JSON.stringify(row),
+      });
+      count++;
+    }
+    return count;
+  });
+
+  const count = insertMany(rows);
+
+  // Update the dataset's record count
+  db.prepare('UPDATE datasets SET records = ?, updated_at = ? WHERE id = ?').run(
+    count,
+    Date.now(),
+    datasetId,
+  );
+
+  return count;
+}
+
+export function getDataRows(datasetId: string): Record<string, unknown>[] {
+  const db = getDb();
+  const rows = db
+    .prepare('SELECT row_data FROM data_rows WHERE dataset_id = ?')
+    .all(Number(datasetId)) as Array<{ row_data: string }>;
+  return rows.map((r) => JSON.parse(r.row_data));
+}
+
+export function getDataRowCount(datasetId: string): number {
+  const db = getDb();
+  const row = db
+    .prepare('SELECT COUNT(*) AS cnt FROM data_rows WHERE dataset_id = ?')
+    .get(Number(datasetId)) as { cnt: number };
+  return row.cnt;
 }
 
 // ---- Query orders ---------------------------------------------------------
@@ -566,7 +424,7 @@ export function getQueryById(id: string): QueryOrder | undefined {
 }
 
 export function addQuery(
-  data: Omit<QueryOrder, 'id' | 'status' | 'createdAt'>,
+  data: Omit<QueryOrder, 'id' | 'status' | 'createdAt'> & { txHash?: string; onChainId?: string },
 ): QueryOrder {
   const db = getDb();
   const now = Date.now();
@@ -574,10 +432,10 @@ export function addQuery(
   const result = db.prepare(`
     INSERT INTO query_orders (
       dataset_id, buyer, query_type, parameters, price, status,
-      result, result_cid, attestation, created_at, updated_at, completed_at
+      result, result_cid, attestation, tx_hash, on_chain_id, created_at, updated_at, completed_at
     ) VALUES (
       @dataset_id, @buyer, @query_type, @parameters, @price, @status,
-      @result, @result_cid, @attestation, @created_at, @updated_at, @completed_at
+      @result, @result_cid, @attestation, @tx_hash, @on_chain_id, @created_at, @updated_at, @completed_at
     )
   `).run({
     dataset_id: data.datasetId,
@@ -589,6 +447,8 @@ export function addQuery(
     result: '{}',
     result_cid: '',
     attestation: '{}',
+    tx_hash: data.txHash || '',
+    on_chain_id: data.onChainId || '',
     created_at: now,
     updated_at: now,
     completed_at: 0,
@@ -597,7 +457,6 @@ export function addQuery(
   // Bump dataset's totalQueries
   db.prepare('UPDATE datasets SET total_queries = total_queries + 1, updated_at = ? WHERE id = ?').run(now, data.datasetId);
 
-  // Log activity
   logActivity({
     type: 'query_created',
     datasetId: data.datasetId,
@@ -639,6 +498,57 @@ export function updateQueryStatus(
   });
 
   // When a query completes, add its price to the dataset's revenue
+  if (status === OrderStatus.COMPLETED) {
+    const dataset = getDatasetById(existing.datasetId);
+    if (dataset) {
+      const newRevenue = (parseFloat(dataset.revenue) + parseFloat(existing.price)).toFixed(2);
+      db.prepare('UPDATE datasets SET total_revenue = ?, updated_at = ? WHERE id = ?').run(newRevenue, now, existing.datasetId);
+    }
+
+    logActivity({
+      type: 'query_completed',
+      datasetId: existing.datasetId,
+      orderId: id,
+      actor: extra?.attestation?.workerId ?? '',
+      message: `Query #${id} completed for dataset #${existing.datasetId}`,
+    });
+  }
+
+  return getQueryById(id);
+}
+
+export function updateQueryStatusWithResult(
+  id: string,
+  status: OrderStatus,
+  result: Record<string, unknown>,
+  extra?: Partial<Pick<QueryOrder, 'executedAt' | 'resultCid' | 'attestation'>>,
+): QueryOrder | undefined {
+  const db = getDb();
+  const existing = getQueryById(id);
+  if (!existing) return undefined;
+
+  const now = Date.now();
+  const completedAt = (status === OrderStatus.COMPLETED) ? (extra?.executedAt ?? now) : 0;
+
+  db.prepare(`
+    UPDATE query_orders SET
+      status = @status,
+      result = @result,
+      result_cid = @result_cid,
+      attestation = @attestation,
+      updated_at = @updated_at,
+      completed_at = @completed_at
+    WHERE id = @id
+  `).run({
+    id: Number(id),
+    status,
+    result: JSON.stringify(result),
+    result_cid: extra?.resultCid ?? existing.resultCid ?? '',
+    attestation: extra?.attestation ? JSON.stringify(extra.attestation) : (existing.attestation ? JSON.stringify(existing.attestation) : '{}'),
+    updated_at: now,
+    completed_at: completedAt || (existing.executedAt ?? 0),
+  });
+
   if (status === OrderStatus.COMPLETED) {
     const dataset = getDatasetById(existing.datasetId);
     if (dataset) {

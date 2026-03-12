@@ -143,7 +143,7 @@ export default function DocsPage() {
                 <h3 className="text-xl font-semibold mb-4 text-white">Prerequisites</h3>
                 <ul className="list-disc list-inside text-gray-300 space-y-2 mb-6">
                   <li>Web3 wallet (MetaMask, WalletConnect, etc.)</li>
-                  <li>FIL tokens for transactions</li>
+                  <li>tFIL tokens for transactions</li>
                   <li>Dataset to upload (for sellers) or analysis requirements (for buyers)</li>
                 </ul>
 

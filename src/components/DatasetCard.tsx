@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 interface DatasetCardProps {
   dataset: {
     id: string;
@@ -15,7 +17,8 @@ interface DatasetCardProps {
 
 export default function DatasetCard({ dataset }: DatasetCardProps) {
   return (
-    <div className="border border-transparent rounded-xl p-6 hover:shadow-lg transition-shadow bg-white relative overflow-hidden">
+    <Link href={`/marketplace/${dataset.id}`} className="block">
+    <div className="border border-transparent rounded-xl p-6 hover:shadow-lg transition-shadow bg-white relative overflow-hidden cursor-pointer">
       <div className="relative z-10">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -91,5 +94,6 @@ export default function DatasetCard({ dataset }: DatasetCardProps) {
       </div>
       </div>
     </div>
+    </Link>
   );
 }
