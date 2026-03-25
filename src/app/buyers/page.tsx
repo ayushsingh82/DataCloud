@@ -15,6 +15,7 @@ interface ApiDataset {
   size: number;
   records?: number;
   format?: string;
+  columns?: string[];
   allowedQueries: string[];
   verified: boolean;
   cid: string;
@@ -67,6 +68,7 @@ export default function BuyersPage() {
   const [mlModel, setMlModel] = useState('logistic');
   const [mlTarget, setMlTarget] = useState('');
   const [mlFeatures, setMlFeatures] = useState('');
+  const [corrVariables, setCorrVariables] = useState('');
   const [cohortDef, setCohortDef] = useState('signup');
   const [cohortPeriod, setCohortPeriod] = useState('monthly');
   const [cohortMetric, setCohortMetric] = useState('retention');
@@ -112,7 +114,7 @@ export default function BuyersPage() {
       case 'cohort':
         return { cohortDefinition: cohortDef, timePeriod: cohortPeriod, metric: cohortMetric };
       case 'correlation':
-        return { method: 'pearson' };
+        return { method: 'pearson', variables: corrVariables ? corrVariables.split(',').map(s => s.trim()) : (selectedDataset?.columns || []) };
       case 'analytics':
         return { type: 'distribution' };
       default:
@@ -329,6 +331,16 @@ export default function BuyersPage() {
                     <div><strong>Category:</strong> {selectedDataset.category}</div>
                     <div><strong>Records:</strong> {selectedDataset.records || 0}</div>
                     <div><strong>Base price:</strong> {selectedDataset.price} tFIL</div>
+                    {selectedDataset.columns && selectedDataset.columns.length > 0 && (
+                      <div className="mt-2">
+                        <strong>Columns:</strong>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedDataset.columns.map(col => (
+                            <span key={col} className="px-2 py-0.5 bg-black/5 border border-black/10 rounded text-xs font-mono">{col}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     {selectedDataset.onChainId && (
                       <div className="text-green-700 mt-1">On-chain registered (ID: {selectedDataset.onChainId}) — tFIL payment via smart contract</div>
                     )}
@@ -388,23 +400,49 @@ export default function BuyersPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2 text-black/80">Column</label>
-                        <input
-                          type="text"
-                          value={aggColumn}
-                          onChange={(e) => setAggColumn(e.target.value)}
-                          placeholder="e.g., transaction_amount"
-                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
-                        />
+                        {selectedDataset?.columns && selectedDataset.columns.length > 0 ? (
+                          <select
+                            value={aggColumn}
+                            onChange={(e) => setAggColumn(e.target.value)}
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
+                          >
+                            <option value="">Select a column...</option>
+                            {selectedDataset.columns.map(col => (
+                              <option key={col} value={col}>{col}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={aggColumn}
+                            onChange={(e) => setAggColumn(e.target.value)}
+                            placeholder="e.g., transaction_amount"
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
+                          />
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2 text-black/80">Group By (optional)</label>
-                        <input
-                          type="text"
-                          value={aggGroupBy}
-                          onChange={(e) => setAggGroupBy(e.target.value)}
-                          placeholder="e.g., age_group, region"
-                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
-                        />
+                        {selectedDataset?.columns && selectedDataset.columns.length > 0 ? (
+                          <select
+                            value={aggGroupBy}
+                            onChange={(e) => setAggGroupBy(e.target.value)}
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
+                          >
+                            <option value="">None</option>
+                            {selectedDataset.columns.map(col => (
+                              <option key={col} value={col}>{col}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={aggGroupBy}
+                            onChange={(e) => setAggGroupBy(e.target.value)}
+                            placeholder="e.g., age_group, region"
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
+                          />
+                        )}
                       </div>
                     </div>
                   )}
@@ -426,23 +464,72 @@ export default function BuyersPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2 text-black/80">Target Variable</label>
-                        <input
-                          type="text"
-                          value={mlTarget}
-                          onChange={(e) => setMlTarget(e.target.value)}
-                          placeholder="e.g., is_fraud, customer_value"
-                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
-                        />
+                        {selectedDataset?.columns && selectedDataset.columns.length > 0 ? (
+                          <select
+                            value={mlTarget}
+                            onChange={(e) => setMlTarget(e.target.value)}
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black bg-white focus:border-black focus:outline-none"
+                          >
+                            <option value="">Select target column...</option>
+                            {selectedDataset.columns.map(col => (
+                              <option key={col} value={col}>{col}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            value={mlTarget}
+                            onChange={(e) => setMlTarget(e.target.value)}
+                            placeholder="e.g., is_fraud, customer_value"
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
+                          />
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2 text-black/80">Feature Columns</label>
-                        <textarea
-                          rows={3}
-                          value={mlFeatures}
-                          onChange={(e) => setMlFeatures(e.target.value)}
-                          placeholder="e.g., age, income, location, transaction_history"
-                          className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
-                        />
+                        {selectedDataset?.columns && selectedDataset.columns.length > 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                              {selectedDataset.columns
+                                .filter(col => col !== mlTarget)
+                                .map(col => {
+                                  const selected = mlFeatures.split(',').map(s => s.trim()).filter(Boolean).includes(col);
+                                  return (
+                                    <button
+                                      key={col}
+                                      type="button"
+                                      onClick={() => {
+                                        const current = mlFeatures.split(',').map(s => s.trim()).filter(Boolean);
+                                        if (selected) {
+                                          setMlFeatures(current.filter(c => c !== col).join(', '));
+                                        } else {
+                                          setMlFeatures([...current, col].join(', '));
+                                        }
+                                      }}
+                                      className={`px-3 py-1 rounded-lg border text-xs font-mono transition-all ${
+                                        selected
+                                          ? 'border-black bg-black text-white'
+                                          : 'border-black/20 text-black hover:border-black bg-white'
+                                      }`}
+                                    >
+                                      {col}
+                                    </button>
+                                  );
+                                })}
+                            </div>
+                            {mlFeatures && (
+                              <p className="text-xs text-black/50">Selected: {mlFeatures}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <textarea
+                            rows={3}
+                            value={mlFeatures}
+                            onChange={(e) => setMlFeatures(e.target.value)}
+                            placeholder="e.g., age, income, location, transaction_history"
+                            className="w-full border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
+                          />
+                        )}
                       </div>
                     </div>
                   )}
@@ -488,9 +575,58 @@ export default function BuyersPage() {
                     </div>
                   )}
 
-                  {(selectedQueryType === 'correlation' || selectedQueryType === 'analytics') && (
+                  {selectedQueryType === 'correlation' && (
+                    <div className="space-y-3">
+                      <p className="text-black/70 text-sm">Select columns to compute pairwise correlations.</p>
+                      {selectedDataset?.columns && selectedDataset.columns.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedDataset.columns.map(col => {
+                            const selected = corrVariables
+                              ? corrVariables.split(',').map(s => s.trim()).includes(col)
+                              : true; // default: all selected
+                            return (
+                              <button
+                                key={col}
+                                type="button"
+                                onClick={() => {
+                                  const allCols = selectedDataset.columns || [];
+                                  // If corrVariables is empty, start from all columns
+                                  const current = corrVariables
+                                    ? corrVariables.split(',').map(s => s.trim()).filter(Boolean)
+                                    : [...allCols];
+                                  if (selected) {
+                                    setCorrVariables(current.filter(c => c !== col).join(', '));
+                                  } else {
+                                    setCorrVariables([...current, col].join(', '));
+                                  }
+                                }}
+                                className={`px-3 py-1 rounded-lg border text-xs font-mono transition-all ${
+                                  selected
+                                    ? 'border-black bg-black text-white'
+                                    : 'border-black/20 text-black hover:border-black bg-white'
+                                }`}
+                              >
+                                {col}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-black/50 text-sm">Runs on all numeric columns automatically.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedQueryType === 'analytics' && (
                     <div className="text-black/70 text-sm">
-                      This query type runs automatically on all numeric columns in the dataset.
+                      Runs automatically on all numeric columns — returns mean, median, std dev, distribution, and time series.
+                      {selectedDataset?.columns && selectedDataset.columns.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {selectedDataset.columns.map(col => (
+                            <span key={col} className="px-2 py-0.5 bg-black/5 border border-black/10 rounded text-xs font-mono">{col}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -636,7 +772,7 @@ export default function BuyersPage() {
               </div>
               <h3 className="text-xl font-semibold mb-4 text-black">Get Verified Results</h3>
               <p className="text-black/80 leading-relaxed">
-                Receive results with cryptographic attestation. Results are stored on IPFS via Lighthouse for permanent verifiability.
+                Receive results with cryptographic attestation. Results are stored on IPFS via Pinata for permanent verifiability.
               </p>
             </div>
           </div>

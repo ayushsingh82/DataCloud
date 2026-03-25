@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Handle file upload: parse CSV/JSON, upload to Lighthouse, register on-chain
+ * Handle file upload: parse CSV/JSON, upload to Pinata IPFS, register on-chain
  */
 async function handleFileUpload(request: NextRequest) {
   const formData = await request.formData();
@@ -226,7 +226,7 @@ async function handleFileUpload(request: NextRequest) {
     );
   }
 
-  // Upload to Lighthouse (IPFS/Filecoin)
+  // Upload to IPFS via Pinata
   let cid = '';
   if (isLighthouseConfigured()) {
     try {
@@ -234,16 +234,19 @@ async function handleFileUpload(request: NextRequest) {
       cid = uploadResult.cid;
     } catch (err) {
       return NextResponse.json(
-        { success: false, error: `Lighthouse upload failed: ${(err as Error).message}` },
+        { success: false, error: `Pinata upload failed: ${(err as Error).message}` },
         { status: 502 },
       );
     }
   } else {
     return NextResponse.json(
-      { success: false, error: 'LIGHTHOUSE_API_KEY is not configured. Cannot upload files without Lighthouse.' },
+      { success: false, error: 'PINATA_JWT is not configured. Cannot upload files without Pinata.' },
       { status: 503 },
     );
   }
+
+  // Extract column names from the parsed data
+  const columns = Object.keys(dataRows[0] || {});
 
   // Store dataset metadata in SQLite
   const format = fileName.endsWith('.json') ? 'json' : 'csv';
@@ -265,6 +268,7 @@ async function handleFileUpload(request: NextRequest) {
     },
     records: dataRows.length,
     format,
+    columns,
   });
 
   // Store the actual data rows for query computation

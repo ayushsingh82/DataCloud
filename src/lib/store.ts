@@ -47,6 +47,7 @@ function getDb(): Database.Database {
       pdp_enabled     INTEGER NOT NULL DEFAULT 0,
       pdp_frequency   INTEGER NOT NULL DEFAULT 0,
       pdp_last_verified INTEGER NOT NULL DEFAULT 0,
+      columns         TEXT    NOT NULL DEFAULT '[]',
       ipfs_cid        TEXT    NOT NULL DEFAULT '',
       encryption      TEXT    NOT NULL DEFAULT '',
       schema_hash     TEXT    NOT NULL DEFAULT '',
@@ -97,12 +98,15 @@ function getDb(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_data_rows_dataset ON data_rows(dataset_id);
   `);
 
-  // Add tx_hash and on_chain_id columns if they don't exist (migration)
+  // Add columns if they don't exist (migrations)
   try {
     _db.exec('ALTER TABLE datasets ADD COLUMN tx_hash TEXT NOT NULL DEFAULT ""');
   } catch { /* column already exists */ }
   try {
     _db.exec('ALTER TABLE datasets ADD COLUMN on_chain_id TEXT NOT NULL DEFAULT ""');
+  } catch { /* column already exists */ }
+  try {
+    _db.exec('ALTER TABLE datasets ADD COLUMN columns TEXT NOT NULL DEFAULT "[]"');
   } catch { /* column already exists */ }
   try {
     _db.exec('ALTER TABLE query_orders ADD COLUMN tx_hash TEXT NOT NULL DEFAULT ""');
@@ -131,6 +135,7 @@ interface DatasetRow {
   pdp_enabled: number;
   pdp_frequency: number;
   pdp_last_verified: number;
+  columns: string;
   ipfs_cid: string;
   encryption: string;
   schema_hash: string;
@@ -143,7 +148,9 @@ interface DatasetRow {
   updated_at: number;
 }
 
-function rowToDataset(row: DatasetRow): Dataset & { records: number; format: string; txHash: string; onChainId: string } {
+function rowToDataset(row: DatasetRow): Dataset & { records: number; format: string; columns: string[]; txHash: string; onChainId: string } {
+  let columns: string[] = [];
+  try { columns = JSON.parse(row.columns || '[]'); } catch { columns = []; }
   return {
     id: String(row.id),
     cid: row.ipfs_cid,
@@ -163,6 +170,7 @@ function rowToDataset(row: DatasetRow): Dataset & { records: number; format: str
     revenue: row.total_revenue,
     records: row.records,
     format: row.format,
+    columns,
     txHash: row.tx_hash,
     onChainId: row.on_chain_id,
   };
@@ -253,6 +261,7 @@ export function addDataset(
     cid?: string;
     records?: number;
     format?: string;
+    columns?: string[];
     txHash?: string;
     onChainId?: string;
   },
@@ -265,12 +274,12 @@ export function addDataset(
     INSERT INTO datasets (
       title, description, category, owner, price, size, records, format,
       allowed_queries, verified, pdp_enabled, pdp_frequency, pdp_last_verified,
-      ipfs_cid, encryption, schema_hash, pdp_params,
+      columns, ipfs_cid, encryption, schema_hash, pdp_params,
       total_queries, total_revenue, tx_hash, on_chain_id, created_at, updated_at
     ) VALUES (
       @title, @description, @category, @owner, @price, @size, @records, @format,
       @allowed_queries, @verified, @pdp_enabled, @pdp_frequency, @pdp_last_verified,
-      @ipfs_cid, @encryption, @schema_hash, @pdp_params,
+      @columns, @ipfs_cid, @encryption, @schema_hash, @pdp_params,
       @total_queries, @total_revenue, @tx_hash, @on_chain_id, @created_at, @updated_at
     )
   `).run({
@@ -287,6 +296,7 @@ export function addDataset(
     pdp_enabled: data.pdpParams ? 1 : 0,
     pdp_frequency: data.pdpParams?.challengeInterval ?? 0,
     pdp_last_verified: now,
+    columns: JSON.stringify(data.columns || []),
     ipfs_cid: cid,
     encryption: '',
     schema_hash: data.schemaHash,

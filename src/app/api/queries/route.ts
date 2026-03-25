@@ -315,7 +315,7 @@ function executeComputation(orderId: string) {
       const queryHash = crypto.createHash('sha256').update(JSON.stringify(order.parameters)).digest('hex');
       const resultHash = crypto.createHash('sha256').update(resultJson).digest('hex');
 
-      // Upload result to IPFS if Lighthouse is configured
+      // Upload result to IPFS if Pinata is configured
       let resultCid = '';
       if (isLighthouseConfigured()) {
         try {

@@ -1,65 +1,97 @@
 /**
- * Filecoin Storage Service — Real IPFS/Filecoin uploads via Lighthouse SDK
+ * IPFS Storage Service — Uploads and retrieval via Pinata
  *
- * Requires LIGHTHOUSE_API_KEY environment variable to be set.
- * Without it, uploads will fail (no mock fallback).
+ * Requires PINATA_JWT environment variable to be set.
+ * Get your JWT at: https://app.pinata.cloud/developers/api-keys
  */
 
-const LIGHTHOUSE_UPLOAD_URL = 'https://upload.lighthouse.storage/api/v0/add';
-const LIGHTHOUSE_GATEWAY = 'https://gateway.lighthouse.storage/ipfs';
+const PINATA_UPLOAD_URL = 'https://api.pinata.cloud/pinning/pinFileToIPFS';
+const PINATA_JSON_URL = 'https://api.pinata.cloud/pinning/pinJSONToIPFS';
+
+function getPinataGateway(): string {
+  return process.env.PINATA_GATEWAY || 'https://gateway.pinata.cloud';
+}
 
 /**
- * Upload a file buffer to IPFS via Lighthouse
+ * Upload a file buffer to IPFS via Pinata
  * @returns The IPFS CID of the uploaded file
  */
 export async function uploadToLighthouse(
   fileBuffer: Buffer,
   fileName: string,
 ): Promise<{ cid: string }> {
-  const apiKey = process.env.LIGHTHOUSE_API_KEY;
-  if (!apiKey) {
+  const jwt = process.env.PINATA_JWT;
+  if (!jwt) {
     throw new Error(
-      'LIGHTHOUSE_API_KEY is not set. Get one at https://files.lighthouse.storage/',
+      'PINATA_JWT is not set. Get one at https://app.pinata.cloud/developers/api-keys',
     );
   }
 
   const formData = new FormData();
   formData.append('file', new Blob([new Uint8Array(fileBuffer)]), fileName);
 
-  const res = await fetch(LIGHTHOUSE_UPLOAD_URL, {
+  const metadata = JSON.stringify({ name: fileName });
+  formData.append('pinataMetadata', metadata);
+
+  const res = await fetch(PINATA_UPLOAD_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${jwt}`,
     },
     body: formData,
   });
 
   if (!res.ok) {
     const errorText = await res.text();
-    throw new Error(`Lighthouse upload failed (${res.status}): ${errorText}`);
+    throw new Error(`Pinata upload failed (${res.status}): ${errorText}`);
   }
 
   const data = await res.json();
-  return { cid: data.Hash };
+  return { cid: data.IpfsHash };
 }
 
 /**
- * Upload JSON data (like query results) to IPFS via Lighthouse
+ * Upload JSON data (like query results) to IPFS via Pinata
  * @returns The IPFS CID
  */
 export async function uploadJsonToLighthouse(
   data: Record<string, unknown>,
   fileName: string,
 ): Promise<{ cid: string }> {
-  const jsonBuffer = Buffer.from(JSON.stringify(data, null, 2));
-  return uploadToLighthouse(jsonBuffer, fileName);
+  const jwt = process.env.PINATA_JWT;
+  if (!jwt) {
+    throw new Error(
+      'PINATA_JWT is not set. Get one at https://app.pinata.cloud/developers/api-keys',
+    );
+  }
+
+  const res = await fetch(PINATA_JSON_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      pinataContent: data,
+      pinataMetadata: { name: fileName },
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Pinata JSON upload failed (${res.status}): ${errorText}`);
+  }
+
+  const result = await res.json();
+  return { cid: result.IpfsHash };
 }
 
 /**
- * Retrieve a file from IPFS via Lighthouse gateway
+ * Retrieve a file from IPFS via Pinata gateway
  */
 export async function retrieveFromLighthouse(cid: string): Promise<Buffer> {
-  const res = await fetch(`${LIGHTHOUSE_GATEWAY}/${cid}`);
+  const gateway = getPinataGateway();
+  const res = await fetch(`${gateway}/ipfs/${cid}`);
   if (!res.ok) {
     // Fallback to ipfs.io gateway
     const fallbackRes = await fetch(`https://ipfs.io/ipfs/${cid}`);
@@ -72,40 +104,40 @@ export async function retrieveFromLighthouse(cid: string): Promise<Buffer> {
 }
 
 /**
- * Get Lighthouse storage usage stats
+ * Get Pinata storage usage stats
  */
 export async function getLighthouseStorageStatus(): Promise<{
   available: boolean;
   totalUploads: number;
   totalStorageGB: number;
 }> {
-  const apiKey = process.env.LIGHTHOUSE_API_KEY;
-  if (!apiKey) {
+  const jwt = process.env.PINATA_JWT;
+  if (!jwt) {
     return { available: false, totalUploads: 0, totalStorageGB: 0 };
   }
 
   try {
-    const res = await fetch(
-      `https://api.lighthouse.storage/api/user/user_data_usage?apiKey=${apiKey}`,
-    );
+    const res = await fetch('https://api.pinata.cloud/data/userPinnedDataTotal', {
+      headers: { Authorization: `Bearer ${jwt}` },
+    });
     if (res.ok) {
       const data = await res.json();
       return {
         available: true,
-        totalUploads: data.totalUploads || 0,
-        totalStorageGB: (data.totalSize || 0) / (1024 * 1024 * 1024),
+        totalUploads: data.pin_count || 0,
+        totalStorageGB: (data.pin_size_total || 0) / (1024 * 1024 * 1024),
       };
     }
   } catch (err) {
-    console.warn('[Lighthouse] getStorageStatus failed:', (err as Error).message);
+    console.warn('[Pinata] getStorageStatus failed:', (err as Error).message);
   }
 
   return { available: false, totalUploads: 0, totalStorageGB: 0 };
 }
 
 /**
- * Check if Lighthouse is configured
+ * Check if Pinata is configured
  */
 export function isLighthouseConfigured(): boolean {
-  return !!process.env.LIGHTHOUSE_API_KEY;
+  return !!process.env.PINATA_JWT;
 }

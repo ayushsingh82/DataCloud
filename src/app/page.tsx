@@ -123,7 +123,7 @@ export default function Home() {
               <div className="text-3xl mb-4">&#128200;</div>
               <h3 className="text-xl font-bold text-white mb-4">For Sellers</h3>
               <ul className="space-y-3 text-white/70 text-sm leading-relaxed">
-                <li className="flex gap-2"><span className="text-[#EBF73F]">&#8226;</span> Upload datasets via Lighthouse + IPFS</li>
+                <li className="flex gap-2"><span className="text-[#EBF73F]">&#8226;</span> Upload datasets via Pinata + IPFS</li>
                 <li className="flex gap-2"><span className="text-[#EBF73F]">&#8226;</span> Get paid in tFIL for every query</li>
                 <li className="flex gap-2"><span className="text-[#EBF73F]">&#8226;</span> Raw data is never exposed to buyers</li>
               </ul>

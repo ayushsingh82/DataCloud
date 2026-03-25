@@ -241,7 +241,7 @@ export default function SellersPage() {
                   </div>
                 )}
                 <div className="mt-2 text-xs text-black/60">
-                  Stored on IPFS via Lighthouse — Your data is on Filecoin decentralized storage.
+                  Stored on IPFS via Pinata — Your data is on decentralized storage.
                 </div>
               </div>
             )}
@@ -471,7 +471,7 @@ export default function SellersPage() {
                 <span className="text-2xl">1</span>
               </div>
               <h3 className="text-xl font-semibold mb-3 text-black">Upload & Publish</h3>
-              <p className="text-black/80 leading-relaxed">Upload your CSV or JSON file. It gets stored on IPFS via Lighthouse and registered on Filecoin.</p>
+              <p className="text-black/80 leading-relaxed">Upload your CSV or JSON file. It gets stored on IPFS via Pinata and registered on Filecoin.</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-[#EBF73F] rounded-full flex items-center justify-center mx-auto mb-4 text-black font-bold">
