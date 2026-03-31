@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { QueryOrder, QueryType, OrderStatus, areContractsConfigured, completeOrderOnChain } from '@/lib/contracts';
+import { QueryOrder, QueryType, OrderStatus } from '@/lib/contracts';
 import {
   getQueries,
   getQueryById,
@@ -19,6 +19,7 @@ import {
 } from '@/lib/dataset-data';
 import { uploadJsonToLighthouse, isLighthouseConfigured } from '@/lib/filecoin-service';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { isAIConfigured, generateInsights } from '@/lib/ai-service';
 
 // ---------------------------------------------------------------------------
 // Rate-limit helper
@@ -338,25 +339,34 @@ function executeComputation(orderId: string) {
         signature: `0x${crypto.createHash('sha256').update(`${orderId}-${resultHash}-${Date.now()}`).digest('hex')}`,
       };
 
+      // Generate AI insights if configured
+      let aiInsights: string | undefined;
+      if (isAIConfigured()) {
+        try {
+          const dataset = getDatasetById(order.datasetId);
+          aiInsights = await generateInsights(
+            order.queryType,
+            order.parameters,
+            result,
+            dataset?.title || 'Unknown Dataset',
+          );
+        } catch (err) {
+          console.warn('AI insights generation failed:', (err as Error).message);
+        }
+      }
+
+      // Attach AI insights to result if available
+      const finalResult = aiInsights ? { ...result, aiInsights } : result;
+
       // Complete the order in the database
-      updateQueryStatusWithResult(orderId, OrderStatus.COMPLETED, result, {
+      updateQueryStatusWithResult(orderId, OrderStatus.COMPLETED, finalResult, {
         executedAt: Date.now(),
         resultCid,
         attestation,
       });
 
-      // Complete on-chain if contracts are configured and order has an on-chain ID
-      if (areContractsConfigured() && resultCid) {
-        const latestOrder = getQueryById(orderId) as (QueryOrder & { onChainId?: string }) | undefined;
-        const chainOrderId = latestOrder?.onChainId;
-        if (chainOrderId) {
-          try {
-            await completeOrderOnChain(chainOrderId, resultCid, resultHash);
-          } catch (err) {
-            console.warn('On-chain completion failed:', (err as Error).message);
-          }
-        }
-      }
+      // NOTE: On-chain completion (completeOrder) is handled by the frontend
+      // using the buyer's connected wallet — no server-side private key needed.
     } catch (e) {
       console.error('Error in query execution:', e);
       try {

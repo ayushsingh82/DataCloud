@@ -28,6 +28,17 @@ export const queryMarketAbi = [
     outputs: [{ name: '', type: 'uint256' }],
   },
   {
+    name: 'completeOrder',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'orderId', type: 'uint256' },
+      { name: 'resultCid', type: 'string' },
+      { name: 'resultHash', type: 'bytes32' },
+    ],
+    outputs: [],
+  },
+  {
     name: 'cancelOrder',
     type: 'function',
     stateMutability: 'nonpayable',

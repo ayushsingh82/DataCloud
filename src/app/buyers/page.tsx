@@ -73,6 +73,14 @@ export default function BuyersPage() {
   const [cohortPeriod, setCohortPeriod] = useState('monthly');
   const [cohortMetric, setCohortMetric] = useState('retention');
 
+  // Natural language query
+  const [nlQuery, setNlQuery] = useState('');
+  const [nlLoading, setNlLoading] = useState(false);
+
+  // AI insights
+  const [aiInsights, setAiInsights] = useState('');
+  const [insightsLoading, setInsightsLoading] = useState(false);
+
   // Execution state
   const [executing, setExecuting] = useState(false);
   const [paymentStep, setPaymentStep] = useState('');
@@ -119,6 +127,66 @@ export default function BuyersPage() {
         return { type: 'distribution' };
       default:
         return {};
+    }
+  }
+
+  // Natural language → structured query via AI
+  async function handleNLQuery() {
+    if (!nlQuery.trim() || !selectedDataset) return;
+    setNlLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'nl-query',
+          question: nlQuery,
+          datasetId: selectedDataset.id,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error);
+
+      const { queryType, parameters } = json.data;
+      setSelectedQueryType(queryType);
+
+      // Fill in parameter fields from AI response
+      if (queryType === 'aggregation') {
+        if (parameters.function) setAggFunction(parameters.function as string);
+        if (parameters.column) setAggColumn(parameters.column as string);
+        if (parameters.groupBy) setAggGroupBy(parameters.groupBy as string);
+      } else if (queryType === 'ml_training') {
+        if (parameters.modelType) setMlModel(parameters.modelType as string);
+        if (parameters.targetVariable) setMlTarget(parameters.targetVariable as string);
+        if (parameters.features) setMlFeatures((parameters.features as string[]).join(', '));
+      } else if (queryType === 'correlation' && parameters.variables) {
+        setCorrVariables((parameters.variables as string[]).join(', '));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'AI query translation failed');
+    } finally {
+      setNlLoading(false);
+    }
+  }
+
+  // Fetch AI insights for a completed query
+  async function fetchAIInsights(orderId: string) {
+    setInsightsLoading(true);
+    setAiInsights('');
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'insights', orderId }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error);
+      setAiInsights(json.data.insights);
+    } catch (err) {
+      setAiInsights(`Failed to generate insights: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setInsightsLoading(false);
     }
   }
 
@@ -231,6 +299,7 @@ export default function BuyersPage() {
       const orderId = json.data.id;
       setPaymentStep('Waiting for results...');
 
+      let completedData: QueryResult | null = null;
       let attempts = 0;
       while (attempts < 15) {
         await new Promise(r => setTimeout(r, 1500));
@@ -238,6 +307,7 @@ export default function BuyersPage() {
         const pollJson = await pollRes.json();
         if (pollJson.success && pollJson.data) {
           if (pollJson.data.status === 'completed') {
+            completedData = pollJson.data;
             setQueryResult(pollJson.data);
             break;
           }
@@ -248,11 +318,40 @@ export default function BuyersPage() {
         attempts++;
       }
 
-      if (attempts >= 15 && !queryResult) {
-        // Last check
+      if (attempts >= 15 && !completedData) {
         const finalRes = await fetch(`/api/queries?id=${orderId}`);
         const finalJson = await finalRes.json();
-        if (finalJson.success) setQueryResult(finalJson.data);
+        if (finalJson.success) {
+          completedData = finalJson.data;
+          setQueryResult(finalJson.data);
+        }
+      }
+
+      // Complete on-chain using connected wallet (release payment to dataset owner)
+      if (canPayOnChain && onChainOrderId && completedData?.resultCid) {
+        try {
+          setPaymentStep('Completing order on-chain via your wallet...');
+
+          const { keccak256, toHex } = await import('viem');
+          const { writeContract, waitForTransactionReceipt } = await import('wagmi/actions');
+          const { getConfig } = await import('@/lib/get-wagmi-config');
+          const config = getConfig();
+
+          const resultHashBytes = keccak256(toHex(JSON.stringify(completedData.result || {})));
+
+          const completeTxHash = await writeContract(config, {
+            address: QUERY_MARKET_ADDRESS,
+            abi: queryMarketAbi,
+            functionName: 'completeOrder',
+            args: [BigInt(onChainOrderId), completedData.resultCid, resultHashBytes],
+          });
+
+          setPaymentStep('Confirming on-chain completion...');
+          await waitForTransactionReceipt(config, { hash: completeTxHash });
+        } catch (err) {
+          // Non-fatal — off-chain result is already saved
+          console.warn('On-chain completion failed (connected wallet may not be operator):', err);
+        }
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Query execution failed';
@@ -350,6 +449,39 @@ export default function BuyersPage() {
                   </div>
                 )}
               </div>
+
+              {/* AI Natural Language Query */}
+              {selectedDataset && (
+                <div className="border border-[#EBF73F] rounded-lg p-4 bg-[#EBF73F]/10">
+                  <label className="block text-sm font-medium mb-2 text-black">
+                    Ask in plain English (AI-powered)
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={nlQuery}
+                      onChange={(e) => setNlQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleNLQuery()}
+                      placeholder="e.g., What's the average price by category?"
+                      className="flex-1 border border-black/20 rounded-lg px-4 py-2 text-black placeholder-black/50 bg-white focus:border-black focus:outline-none"
+                    />
+                    <button
+                      onClick={handleNLQuery}
+                      disabled={nlLoading || !nlQuery.trim()}
+                      className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                        nlLoading || !nlQuery.trim()
+                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                          : 'bg-black text-white hover:bg-gray-800'
+                      }`}
+                    >
+                      {nlLoading ? 'Thinking...' : 'Ask AI'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-black/50 mt-1">
+                    AI will auto-fill the query type and parameters below
+                  </p>
+                </div>
+              )}
 
               {/* Step 2: Query Type */}
               {selectedDataset && (
@@ -695,6 +827,56 @@ export default function BuyersPage() {
                         </pre>
                       </div>
                     )}
+
+                    {/* AI Insights */}
+                    {queryResult.result && (() => {
+                      const autoInsights = typeof queryResult.result?.aiInsights === 'string' ? queryResult.result.aiInsights : '';
+                      return (
+                        <div className="mt-4 border-t border-green-200 pt-4">
+                          {autoInsights && !aiInsights && (
+                            <div className="p-4 bg-white border border-[#EBF73F] rounded-lg">
+                              <h4 className="font-semibold text-black mb-2 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                AI Insights
+                              </h4>
+                              <div className="text-sm text-black/80 whitespace-pre-wrap leading-relaxed">
+                                {autoInsights}
+                              </div>
+                            </div>
+                          )}
+
+                          {!autoInsights && !aiInsights && (
+                            <button
+                              onClick={() => fetchAIInsights(queryResult.id)}
+                              disabled={insightsLoading}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                insightsLoading
+                                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                  : 'bg-[#EBF73F] text-black hover:bg-[#d9e535]'
+                              }`}
+                            >
+                              {insightsLoading ? 'Generating insights...' : 'Get AI Insights'}
+                            </button>
+                          )}
+
+                          {aiInsights && (
+                            <div className="p-4 bg-white border border-[#EBF73F] rounded-lg">
+                              <h4 className="font-semibold text-black mb-2 flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                AI Insights
+                              </h4>
+                              <div className="text-sm text-black/80 whitespace-pre-wrap leading-relaxed">
+                                {aiInsights}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
