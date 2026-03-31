@@ -222,59 +222,60 @@ export default function BuyersPage() {
     const cost = estimatedCost;
 
     try {
-      // Check if on-chain payment is possible
+      // On-chain payment via connected wallet
       const { isContractConfigured, QUERY_MARKET_ADDRESS, queryMarketAbi } = await import('@/lib/contract-config');
       const canPayOnChain = isContractConfigured() && dataset.onChainId;
 
-      let txHash = '';
+      if (!canPayOnChain) {
+        setError('This dataset is not registered on-chain. The seller must register it first to accept tFIL payments.');
+        return;
+      }
+
+      // Step 1: Pay tFIL — sign createOrder tx
+      setPaymentStep('Sign transaction to pay tFIL...');
+
+      const { parseEther, keccak256, toHex, decodeEventLog } = await import('viem');
+      const { writeContract, waitForTransactionReceipt } = await import('wagmi/actions');
+      const { getConfig } = await import('@/lib/get-wagmi-config');
+      const config = getConfig();
+
+      const queryHash = keccak256(toHex(JSON.stringify(parameters)));
+
+      const hash = await writeContract(config, {
+        address: QUERY_MARKET_ADDRESS,
+        abi: queryMarketAbi,
+        functionName: 'createOrder',
+        args: [BigInt(dataset.onChainId!), selectedQueryType, queryHash],
+        value: parseEther(cost),
+      });
+
+      const txHash = hash;
       let onChainOrderId = '';
 
-      if (canPayOnChain) {
-        // Step 1: Sign transaction
-        setPaymentStep('Signing transaction in your wallet...');
+      // Step 2: Wait for confirmation
+      setPaymentStep('Waiting for on-chain confirmation...');
 
-        const { parseEther, keccak256, toHex, decodeEventLog } = await import('viem');
-        const { writeContract, getPublicClient, waitForTransactionReceipt } = await import('wagmi/actions');
-        const { getConfig } = await import('@/lib/get-wagmi-config');
-        const config = getConfig();
+      const receipt = await waitForTransactionReceipt(config, { hash });
 
-        const queryHash = keccak256(toHex(JSON.stringify(parameters)));
-
-        const hash = await writeContract(config, {
-          address: QUERY_MARKET_ADDRESS,
-          abi: queryMarketAbi,
-          functionName: 'createOrder',
-          args: [BigInt(dataset.onChainId!), selectedQueryType, queryHash],
-          value: parseEther(cost),
-        });
-
-        txHash = hash;
-
-        // Step 2: Wait for confirmation
-        setPaymentStep('Waiting for on-chain confirmation...');
-
-        const receipt = await waitForTransactionReceipt(config, { hash });
-
-        // Parse OrderCreated event to get on-chain order ID
-        for (const log of receipt.logs) {
-          try {
-            const event = decodeEventLog({
-              abi: queryMarketAbi,
-              data: log.data,
-              topics: log.topics,
-            });
-            if (event.eventName === 'OrderCreated') {
-              onChainOrderId = String((event.args as { orderId: bigint }).orderId);
-              break;
-            }
-          } catch {
-            // Not our event
+      // Parse OrderCreated event to get on-chain order ID
+      for (const log of receipt.logs) {
+        try {
+          const event = decodeEventLog({
+            abi: queryMarketAbi,
+            data: log.data,
+            topics: log.topics,
+          });
+          if (event.eventName === 'OrderCreated') {
+            onChainOrderId = String((event.args as { orderId: bigint }).orderId);
+            break;
           }
+        } catch {
+          // Not our event
         }
       }
 
-      // Step 3: Submit query to backend
-      setPaymentStep(canPayOnChain ? 'Running computation...' : 'Executing query...');
+      // Step 3: Submit query to backend for computation
+      setPaymentStep('Running computation...');
 
       const res = await fetch('/api/queries', {
         method: 'POST',

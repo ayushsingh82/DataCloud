@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { QueryType, areContractsConfigured, registerDatasetOnChain } from '@/lib/contracts';
+import { QueryType } from '@/lib/contracts';
 import {
   getDatasets,
   getDatasetById,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       pagination: { total, limit, offset, hasMore: offset + limit < total },
       integration: {
         lighthouse: isLighthouseConfigured(),
-        contracts: areContractsConfigured(),
+        contracts: !!(process.env.DATASET_REGISTRY_ADDRESS && process.env.QUERY_MARKET_ADDRESS),
       },
     });
   } catch (error) {
@@ -275,24 +275,11 @@ async function handleFileUpload(request: NextRequest) {
   insertDataRows(Number(newDataset.id), dataRows);
   clearDataCache(newDataset.id);
 
-  // Register on-chain if smart contracts are configured
-  let txHash = '';
-  let onChainId = '';
-  if (areContractsConfigured()) {
-    try {
-      const onChainResult = await registerDatasetOnChain(
-        cid,
-        title.trim(),
-        category,
-        price,
-        `${file.name}-${file.size}`,
-      );
-      txHash = onChainResult.transactionHash;
-      onChainId = onChainResult.datasetId;
-      updateDataset(newDataset.id, { txHash, onChainId } as never);
-    } catch (err) {
-      console.warn('On-chain registration failed (dataset saved locally):', (err as Error).message);
-    }
+  // On-chain info comes from the frontend (registered via connected wallet)
+  const txHash = formData.get('txHash') as string || '';
+  const onChainId = formData.get('onChainId') as string || '';
+  if (txHash || onChainId) {
+    updateDataset(newDataset.id, { txHash, onChainId } as never);
   }
 
   return NextResponse.json(
@@ -398,6 +385,42 @@ async function handleJsonCreate(request: NextRequest) {
     { success: true, data: newDataset },
     { status: 201 },
   );
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/datasets?id=<id> — update on-chain info
+// ---------------------------------------------------------------------------
+
+export async function PATCH(request: NextRequest) {
+  const blocked = rateLimitGuard(request);
+  if (blocked) return blocked;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Missing id' }, { status: 400 });
+    }
+
+    const dataset = getDatasetById(id);
+    if (!dataset) {
+      return NextResponse.json({ success: false, error: 'Dataset not found' }, { status: 404 });
+    }
+
+    const body = await request.json();
+    const updates: Record<string, unknown> = {};
+    if (body.txHash) updates.txHash = body.txHash;
+    if (body.onChainId) updates.onChainId = body.onChainId;
+
+    if (Object.keys(updates).length > 0) {
+      updateDataset(id, updates as never);
+    }
+
+    return NextResponse.json({ success: true, data: { ...dataset, ...updates } });
+  } catch (error) {
+    console.error('Error updating dataset:', error);
+    return NextResponse.json({ success: false, error: 'Failed to update dataset' }, { status: 500 });
+  }
 }
 
 // ---------------------------------------------------------------------------

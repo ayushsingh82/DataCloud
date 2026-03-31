@@ -67,7 +67,8 @@ export default function SellersPage() {
 
   // Submission state
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState<{ dataset: ApiDataset; upload: UploadResult } | null>(null);
+  const [submitStep, setSubmitStep] = useState('');
+  const [success, setSuccess] = useState<{ dataset: ApiDataset & { txHash?: string; onChainId?: string }; upload: UploadResult } | null>(null);
   const [error, setError] = useState('');
 
   // Existing datasets
@@ -140,6 +141,60 @@ export default function SellersPage() {
     setSuccess(null);
 
     try {
+      // Step 1: Register on-chain FIRST — pay gas as base fee
+      let onChainTxHash = '';
+      let onChainId = '';
+
+      const { isRegistryConfigured, DATASET_REGISTRY_ADDRESS, datasetRegistryAbi } = await import('@/lib/contract-config');
+
+      if (!isRegistryConfigured()) {
+        setError('Smart contracts are not configured. Cannot register dataset.');
+        return;
+      }
+
+      setSubmitStep('Sign transaction to register on Filecoin (gas = base fee)...');
+
+      const { parseEther, keccak256, toHex, decodeEventLog } = await import('viem');
+      const { writeContract, waitForTransactionReceipt } = await import('wagmi/actions');
+      const { getConfig } = await import('@/lib/get-wagmi-config');
+      const config = getConfig();
+
+      const schemaHash = keccak256(toHex(`${file.name}-${file.size}`));
+      const priceWei = parseEther(price);
+      // Use a placeholder CID — will be updated after IPFS upload
+      const placeholderCid = `pending-${Date.now()}`;
+
+      const hash = await writeContract(config, {
+        address: DATASET_REGISTRY_ADDRESS,
+        abi: datasetRegistryAbi,
+        functionName: 'registerDataset',
+        args: [placeholderCid, title.trim(), category, priceWei, schemaHash],
+      });
+
+      onChainTxHash = hash;
+
+      setSubmitStep('Confirming on-chain registration...');
+      const receipt = await waitForTransactionReceipt(config, { hash });
+
+      // Parse DatasetRegistered event
+      for (const log of receipt.logs) {
+        try {
+          const event = decodeEventLog({
+            abi: datasetRegistryAbi,
+            data: log.data,
+            topics: log.topics,
+          });
+          if (event.eventName === 'DatasetRegistered') {
+            onChainId = String((event.args as { datasetId: bigint }).datasetId);
+            break;
+          }
+        } catch {
+          // Not our event
+        }
+      }
+
+      // Step 2: Only after on-chain payment, upload to IPFS + backend
+      setSubmitStep('Uploading to IPFS...');
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', title.trim());
@@ -148,29 +203,42 @@ export default function SellersPage() {
       formData.append('price', price);
       formData.append('owner', address);
       formData.append('allowedQueries', JSON.stringify(allowedQueries));
+      formData.append('txHash', onChainTxHash);
+      formData.append('onChainId', onChainId);
 
       const res = await fetch('/api/datasets', {
         method: 'POST',
         body: formData,
       });
       const json = await res.json();
-      if (json.success) {
-        setSuccess({ dataset: json.data, upload: json.upload });
-        // Reset form
-        setTitle('');
-        setDescription('');
-        setCategory('');
-        setPrice('0.05');
-        setAllowedQueries(['aggregation']);
-        setFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      } else {
+      if (!json.success) {
         setError(json.error || 'Failed to publish dataset');
+        return;
       }
-    } catch {
-      setError('Network error. Please try again.');
+
+      setSuccess({
+        dataset: { ...json.data, txHash: onChainTxHash, onChainId },
+        upload: { ...json.upload, onChain: true, txHash: onChainTxHash, onChainId },
+      });
+
+      // Reset form
+      setTitle('');
+      setDescription('');
+      setCategory('');
+      setPrice('0.05');
+      setAllowedQueries(['aggregation']);
+      setFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed';
+      if (msg.includes('User rejected') || msg.includes('denied')) {
+        setError('Transaction rejected. You must sign the on-chain registration to publish.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setSubmitting(false);
+      setSubmitStep('');
     }
   }
 
@@ -415,7 +483,7 @@ export default function SellersPage() {
                       : 'bg-black hover:bg-gray-800 text-white hover:-translate-y-0.5 hover:shadow-lg'
                   }`}
                 >
-                  {submitting ? 'Uploading to IPFS & Publishing...' : 'Publish Dataset'}
+                  {submitting ? (submitStep || 'Publishing...') : 'Publish Dataset (costs gas in tFIL)'}
                 </button>
               </div>
             </div>

@@ -10,6 +10,67 @@ export function isContractConfigured(): boolean {
   return !!(QUERY_MARKET_ADDRESS && QUERY_MARKET_ADDRESS.length > 2);
 }
 
+export function isRegistryConfigured(): boolean {
+  return !!(DATASET_REGISTRY_ADDRESS && DATASET_REGISTRY_ADDRESS.length > 2);
+}
+
+/**
+ * DatasetRegistry ABI — seller calls registerDataset to register on-chain.
+ */
+export const datasetRegistryAbi = [
+  {
+    name: 'registerDataset',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'cid', type: 'string' },
+      { name: 'title', type: 'string' },
+      { name: 'category', type: 'string' },
+      { name: 'pricePerQuery', type: 'uint256' },
+      { name: 'schemaHash', type: 'bytes32' },
+    ],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    name: 'getDataset',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [{ name: 'datasetId', type: 'uint256' }],
+    outputs: [
+      {
+        name: '',
+        type: 'tuple',
+        components: [
+          { name: 'id', type: 'uint256' },
+          { name: 'cid', type: 'string' },
+          { name: 'owner', type: 'address' },
+          { name: 'title', type: 'string' },
+          { name: 'category', type: 'string' },
+          { name: 'pricePerQuery', type: 'uint256' },
+          { name: 'schemaHash', type: 'bytes32' },
+          { name: 'verified', type: 'bool' },
+          { name: 'createdAt', type: 'uint256' },
+          { name: 'totalQueries', type: 'uint256' },
+          { name: 'totalRevenue', type: 'uint256' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'DatasetRegistered',
+    type: 'event',
+    inputs: [
+      { name: 'datasetId', type: 'uint256', indexed: true },
+      { name: 'cid', type: 'string', indexed: false },
+      { name: 'owner', type: 'address', indexed: true },
+      { name: 'title', type: 'string', indexed: false },
+      { name: 'category', type: 'string', indexed: false },
+      { name: 'pricePerQuery', type: 'uint256', indexed: false },
+      { name: 'timestamp', type: 'uint256', indexed: false },
+    ],
+  },
+] as const;
+
 /**
  * QueryMarket ABI — only the functions/events needed by the frontend.
  * The buyer calls createOrder (payable) to escrow tFIL.
